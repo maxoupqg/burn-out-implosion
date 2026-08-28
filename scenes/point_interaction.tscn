@@ -1,0 +1,36 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/point_interaction.gd" id="1_point"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_portee"]
+radius = 30.0
+
+[node name="PointInteraction" type="Area2D"]
+script = ExtResource("1_point")
+
+[node name="Meuble" type="Polygon2D" parent="."]
+color = Color(0.44, 0.46, 0.53, 1)
+polygon = PackedVector2Array(-32, -48, 32, -48, 32, 0, -32, 0)
+
+[node name="Pastille" type="Polygon2D" parent="."]
+position = Vector2(0, -68)
+color = Color(0.95, 0.55, 0.3, 1)
+polygon = PackedVector2Array(-9, 0, 0, -11, 9, 0, 0, 11)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_portee")
+
+[node name="Etiquette" type="Label" parent="."]
+offset_left = -130.0
+offset_top = -108.0
+offset_right = 130.0
+offset_bottom = -82.0
+theme_override_font_sizes/font_size = 16
+horizontal_alignment = 1
+
+[node name="Barre" type="ProgressBar" parent="."]
+offset_left = -44.0
+offset_top = 8.0
+offset_right = 44.0
+offset_bottom = 20.0
+show_percentage = false

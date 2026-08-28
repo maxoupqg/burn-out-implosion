@@ -1,0 +1,36 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/canape.gd" id="1_canape"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_portee"]
+radius = 34.0
+
+[node name="Canape" type="Area2D"]
+script = ExtResource("1_canape")
+
+[node name="Assise" type="Polygon2D" parent="."]
+color = Color(0.42, 0.36, 0.44, 1)
+polygon = PackedVector2Array(-56, -30, 56, -30, 56, 4, -56, 4)
+
+[node name="Dossier" type="Polygon2D" parent="."]
+color = Color(0.32, 0.28, 0.36, 1)
+polygon = PackedVector2Array(-56, -58, 56, -58, 56, -30, -56, -30)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_portee")
+
+[node name="Etiquette" type="Label" parent="."]
+offset_left = -160.0
+offset_top = -116.0
+offset_right = 160.0
+offset_bottom = -64.0
+theme_override_font_sizes/font_size = 16
+horizontal_alignment = 1
+vertical_alignment = 2
+
+[node name="Barre" type="ProgressBar" parent="."]
+offset_left = -44.0
+offset_top = 12.0
+offset_right = 44.0
+offset_bottom = 24.0
+show_percentage = false

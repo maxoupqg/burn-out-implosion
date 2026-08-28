@@ -1,0 +1,96 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/piece.gd" id="1_piece"]
+[ext_resource type="PackedScene" path="res://scenes/point_interaction.tscn" id="2_point"]
+[ext_resource type="PackedScene" path="res://scenes/dispositif.tscn" id="3_dispositif"]
+[ext_resource type="PackedScene" path="res://scenes/porte.tscn" id="4_porte"]
+[ext_resource type="PackedScene" path="res://scenes/canape.tscn" id="5_canape"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_h"]
+size = Vector2(1040, 20)
+
+[node name="Salon" type="Node2D"]
+y_sort_enabled = true
+script = ExtResource("1_piece")
+piece_id = "salon"
+nom_piece = "Salon"
+depart = Vector2(0, 100)
+spots = Array[Vector2]([Vector2(300, -60), Vector2(60, 220), Vector2(-160, 210)])
+
+[node name="Murs" type="Polygon2D" parent="."]
+z_index = -11
+color = Color(0.11, 0.11, 0.14, 1)
+polygon = PackedVector2Array(-520, -320, 520, -320, 520, 320, -520, 320)
+
+[node name="Sol" type="Polygon2D" parent="."]
+z_index = -10
+color = Color(0.28, 0.26, 0.32, 1)
+polygon = PackedVector2Array(-500, -300, 500, -300, 500, 300, -500, 300)
+
+[node name="Nom" type="Label" parent="."]
+z_index = -9
+offset_left = 184.0
+offset_top = 248.0
+offset_right = 484.0
+offset_bottom = 284.0
+theme_override_colors/font_color = Color(1, 1, 1, 0.35)
+theme_override_font_sizes/font_size = 24
+text = "Salon"
+horizontal_alignment = 2
+
+[node name="Bounds" type="StaticBody2D" parent="."]
+
+[node name="Haut" type="CollisionShape2D" parent="Bounds"]
+position = Vector2(0, -310)
+shape = SubResource("RectangleShape2D_h")
+
+[node name="Bas" type="CollisionShape2D" parent="Bounds"]
+position = Vector2(0, 310)
+shape = SubResource("RectangleShape2D_h")
+
+[node name="Gauche" type="CollisionShape2D" parent="Bounds"]
+position = Vector2(-510, 0)
+rotation = 1.5707963
+shape = SubResource("RectangleShape2D_h")
+
+[node name="Droite" type="CollisionShape2D" parent="Bounds"]
+position = Vector2(510, 0)
+rotation = 1.5707963
+shape = SubResource("RectangleShape2D_h")
+
+[node name="Bureau" parent="." instance=ExtResource("2_point")]
+position = Vector2(-330, -110)
+tache_id = "courrier"
+nom_meuble = "Bureau"
+
+[node name="Ordinateur" parent="." instance=ExtResource("2_point")]
+position = Vector2(-110, -110)
+tache_id = "payer"
+nom_meuble = "Ordinateur"
+
+[node name="Telephone" parent="." instance=ExtResource("2_point")]
+position = Vector2(110, -110)
+tache_id = "medecin"
+nom_meuble = "Téléphone"
+
+[node name="PrelevementAuto" parent="." instance=ExtResource("3_dispositif")]
+position = Vector2(-330, 60)
+fil_id = "factures"
+nom_dispositif = "Prélèvement automatique"
+
+[node name="Canape" parent="." instance=ExtResource("5_canape")]
+position = Vector2(-40, 90)
+
+[node name="Portes" type="Node2D" parent="."]
+
+[node name="VersCuisine" parent="Portes" instance=ExtResource("4_porte")]
+position = Vector2(-450, 210)
+vers = "cuisine"
+nom_destination = "Cuisine"
+decalage_arrivee = Vector2(150, 0)
+
+[node name="VersSalleDeBain" parent="Portes" instance=ExtResource("4_porte")]
+position = Vector2(450, 210)
+vers = "salle_de_bain"
+nom_destination = "Salle de bain"
+decalage_arrivee = Vector2(-150, 0)

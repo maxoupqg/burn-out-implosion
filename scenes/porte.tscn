@@ -1,0 +1,29 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/porte.gd" id="1_porte"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_porte"]
+size = Vector2(56, 130)
+
+[node name="Porte" type="Area2D"]
+script = ExtResource("1_porte")
+
+[node name="Chambranle" type="Polygon2D" parent="."]
+color = Color(0.1, 0.09, 0.11, 1)
+polygon = PackedVector2Array(-34, -75, 34, -75, 34, 75, -34, 75)
+
+[node name="Seuil" type="Polygon2D" parent="."]
+color = Color(0.42, 0.38, 0.3, 1)
+polygon = PackedVector2Array(-26, -65, 26, -65, 26, 65, -26, 65)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_porte")
+
+[node name="Etiquette" type="Label" parent="."]
+offset_left = -110.0
+offset_top = 82.0
+offset_right = 110.0
+offset_bottom = 110.0
+theme_override_colors/font_color = Color(1, 1, 1, 0.75)
+theme_override_font_sizes/font_size = 17
+horizontal_alignment = 1
