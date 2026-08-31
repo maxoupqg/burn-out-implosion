@@ -186,8 +186,20 @@ func faire_tache(tache_id: String) -> bool:
 
 	if tache.une_seule_fois():
 		tache.terminee = true
+	elif tache.def.prerequis != null:
+		# Refermée, pas reprogrammée : elle attend que sa mère soit refaite.
+		tache.bloquee = true
 	else:
 		tache.disponible_le = jour + tache.recurrence_jours
+
+	# Faire une tâche en fait naître d'autres. C'est le travail qui appelle le
+	# travail : cuisiner remplit le lave-vaisselle, la machine finit par
+	# demander qu'on l'étende. Le délai décide si la suite tombe dans la foulée
+	# ou seulement demain, donc si elle coûte un second déplacement.
+	for suivante: Tache in taches.values():
+		if suivante.def.prerequis == tache.def:
+			suivante.bloquee = false
+			suivante.disponible_le = jour + suivante.delai_prerequis
 
 	taches_change.emit()
 	_verifier_cloture(tache.fil_id)
