@@ -45,15 +45,30 @@ func _entrer(piece_id: String, depuis: String) -> void:
 		_piece = null
 
 	_piece = PIECES[piece_id].instantiate()
-	_monde.add_child(_piece)
 
+	# Deux pièces voisines ont leur porte commune aux mêmes coordonnées : celle
+	# d'en face naît donc pile sous les pieds du joueur, qui vient d'entrer par
+	# ici. On les fait naître muettes.
 	for porte in _piece.portes():
+		porte.monitoring = false
 		porte.franchie.connect(_sur_porte_franchie)
+
+	_monde.add_child(_piece)
 
 	_joueur.global_position = _piece.point_arrivee(depuis)
 	_joueur.velocity = Vector2.ZERO
 
 	_poser_les_fils_de_la_piece()
+
+	# Le déplacement du joueur n'est vu par le serveur physique qu'au pas
+	# suivant. Rouvrir les portes avant, c'est traverser tout le logement d'une
+	# traite en payant chaque couloir.
+	var posee := _piece
+	await get_tree().physics_frame
+	if _piece != posee:
+		return
+	for porte in _piece.portes():
+		porte.monitoring = true
 	_en_transition = false
 
 
