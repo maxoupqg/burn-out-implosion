@@ -43,7 +43,14 @@ var temps_restant: float = TEMPS_JOUR
 var slots: int = SLOTS_BASE
 ## Nombre de fois où l'on a réussi à ne rien faire. C'est le score.
 var fois_assis: int = 0
+## Journées où le canapé était libre et où l'on est reparti quand même.
+## Zéro assise parce qu'on n'a jamais pu et zéro assise parce qu'on a calculé,
+## ce n'est pas la même semaine.
+var jours_refuses: int = 0
 var finie: bool = false
+
+var _canape_vu_libre: bool = false
+var _assis_aujourdhui: bool = false
 
 ## id -> Fil
 var fils: Dictionary = {}
@@ -62,7 +69,10 @@ func reinitialiser() -> void:
 	temps_restant = temps_du_jour(jour)
 	slots = SLOTS_BASE
 	fois_assis = 0
+	jours_refuses = 0
 	finie = false
+	_canape_vu_libre = false
+	_assis_aujourdhui = false
 
 	fils.clear()
 	taches.clear()
@@ -259,7 +269,15 @@ func sasseoir() -> bool:
 	if not depenser_temps(COUT_ASSIS):
 		return false
 	fois_assis += 1
+	_assis_aujourdhui = true
 	return true
+
+
+## Appelé par le canapé chaque fois qu'il s'affiche disponible. Il n'existe que
+## dans le salon : le voir vert veut donc dire quelque chose de précis — on
+## était dans la pièce, la place était là, et on est reparti.
+func signaler_canape_libre() -> void:
+	_canape_vu_libre = true
 
 
 ## Changer de pièce (§9). Contrairement à toutes les autres dépenses, celle-ci
@@ -304,6 +322,13 @@ func ramasser_fil(fil_id: String) -> bool:
 func coucher() -> void:
 	if finie:
 		return
+
+	# 0. Le renoncement se compte. Avoir eu la place et ne pas l'avoir prise
+	#    n'est pas la même journée que ne jamais avoir eu le choix.
+	if _canape_vu_libre and not _assis_aujourdhui:
+		jours_refuses += 1
+	_canape_vu_libre = false
+	_assis_aujourdhui = false
 
 	# 1. Ce qu'on a laissé traîner enfle. Faire une tâche ne fait pas avancer :
 	#    ça empêche juste son fil de grossir — ou son dispositif de lâcher.

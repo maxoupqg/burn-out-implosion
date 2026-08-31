@@ -45,8 +45,10 @@ func _ecrire_bilan() -> String:
 			Fil.Etat.LACHE: au_sol.append(fil.nom)
 			Fil.Etat.FERME: regles.append(fil.nom)
 
+	var tenus := mini(Partie.jour - 1, Partie.JOURS_SEMAINE)
+
 	var lignes := PackedStringArray()
-	lignes.append("%d jours tenus." % mini(Partie.jour - 1, Partie.JOURS_SEMAINE))
+	lignes.append("%d jours tenus." % tenus)
 
 	# Le vrai score. Il est presque toujours à zéro, et c'est le propos.
 	if Partie.fois_assis == 0:
@@ -55,6 +57,13 @@ func _ecrire_bilan() -> String:
 		lignes.append("Tu t'es assis une fois.")
 	else:
 		lignes.append("Tu t'es assis %d fois." % Partie.fois_assis)
+
+	# Sans cette ligne, le zéro se lit « le jeu ne me l'a pas permis ». Avec,
+	# il se lit « je ne l'ai pas fait ».
+	if Partie.jours_refuses > 0:
+		lignes.append("Le canapé était libre %d jour%s sur %d." % [
+			Partie.jours_refuses, "s" if Partie.jours_refuses > 1 else "", tenus
+		])
 
 	lignes.append("")
 	if not ancres.is_empty():

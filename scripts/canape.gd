@@ -27,6 +27,9 @@ func _executer() -> float:
 
 func rafraichir() -> void:
 	if disponible():
+		# On ne rafraîchit que si le canapé est chargé, donc si le joueur est
+		# au salon. Le vert vu ici est une occasion réellement offerte.
+		Partie.signaler_canape_libre()
 		_assise.color = COULEUR_PRET
 		_etiquette.text = "Canapé : s'asseoir   %.1f" % Partie.cout_reel(Partie.COUT_ASSIS)
 		_etiquette.modulate = Color(1, 1, 1)
