@@ -13,14 +13,16 @@ const COULEUR_ANCRE := Color(0.42, 0.66, 0.88)
 const COULEUR_USE := Color(0.72, 0.5, 0.28)
 const COULEUR_BLOQUE := Color(1.0, 0.4, 0.35)
 
-@export var fil_id: String = ""
+## Le fil que cet emplacement accepte. On y glisse un `.tres` de
+## `donnees/fils/`. Un emplacement typé encode gratuitement la règle du §9.
+@export var fil_def: FilDef
 @export var nom_dispositif: String = "Dispositif"
 
 @onready var _panneau: Polygon2D = $Panneau
 
 
 func fil() -> Fil:
-	return Partie.fils.get(fil_id)
+	return Partie.fils.get(fil_def.id) if fil_def != null else null
 
 
 func ancre() -> bool:
@@ -29,12 +31,12 @@ func ancre() -> bool:
 
 
 func disponible() -> bool:
-	return Partie.peut_ancrer(fil_id)
+	return fil_def != null and Partie.peut_ancrer(fil_def.id)
 
 
 func _executer() -> float:
 	var cout := Partie.cout_reel(Partie.COUT_ANCRAGE)
-	if not Partie.ancrer_fil(fil_id):
+	if not Partie.ancrer_fil(fil_def.id):
 		return -1.0
 	return cout
 

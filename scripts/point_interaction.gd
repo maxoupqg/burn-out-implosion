@@ -7,14 +7,15 @@ extends Interactif
 const COULEUR_ACTIF := Color(0.95, 0.55, 0.3)
 const COULEUR_TROP_CHER := Color(1.0, 0.4, 0.35)
 
-@export var tache_id: String = ""
+## La tâche que ce meuble porte. On y glisse un `.tres` de `donnees/taches/`.
+@export var tache_def: TacheDef
 @export var nom_meuble: String = "Meuble"
 
 @onready var _pastille: Polygon2D = $Pastille
 
 
 func tache() -> Tache:
-	return Partie.taches.get(tache_id)
+	return Partie.taches.get(tache_def.id) if tache_def != null else null
 
 
 func disponible() -> bool:
@@ -23,7 +24,7 @@ func disponible() -> bool:
 
 func _executer() -> float:
 	var cout := Partie.cout_reel(tache().cout_base)
-	if not Partie.faire_tache(tache_id):
+	if not Partie.faire_tache(tache_def.id):
 		return -1.0
 	return cout
 

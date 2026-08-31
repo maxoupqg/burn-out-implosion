@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="TacheDef" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/tache_def.gd" id="1_def"]
+[ext_resource type="Resource" path="res://donnees/fils/factures.tres" id="2_fil"]
+
+[resource]
+script = ExtResource("1_def")
+id = "courrier"
+nom = "Ouvrir le courrier"
+fil = ExtResource("2_fil")
+cout_base = 1.0
+recurrence_jours = 2
+delai_prerequis = 0

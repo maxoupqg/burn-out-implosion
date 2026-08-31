@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="FilDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/fil_def.gd" id="1_def"]
+
+[resource]
+script = ExtResource("1_def")
+id = "courses"
+nom = "Les courses"
+ancrable = true
+jour_arrivee = 2
+jour_echeance = 0
+temporaire = false
+tension_par_nuit = 1
+annonce = true

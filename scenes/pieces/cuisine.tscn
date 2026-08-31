@@ -1,9 +1,16 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=13 format=3]
 
 [ext_resource type="Script" path="res://scripts/piece.gd" id="1_piece"]
 [ext_resource type="PackedScene" path="res://scenes/point_interaction.tscn" id="2_point"]
 [ext_resource type="PackedScene" path="res://scenes/dispositif.tscn" id="3_dispositif"]
 [ext_resource type="PackedScene" path="res://scenes/porte.tscn" id="4_porte"]
+[ext_resource type="Resource" path="res://donnees/taches/cuisiner.tres" id="5_cuisiner"]
+[ext_resource type="Resource" path="res://donnees/taches/vaisselle.tres" id="6_vaisselle"]
+[ext_resource type="Resource" path="res://donnees/taches/sirop.tres" id="7_sirop"]
+[ext_resource type="Resource" path="res://donnees/taches/liste.tres" id="8_liste"]
+[ext_resource type="Resource" path="res://donnees/taches/ranger_courses.tres" id="9_ranger"]
+[ext_resource type="Resource" path="res://donnees/fils/repas.tres" id="10_repas"]
+[ext_resource type="Resource" path="res://donnees/fils/courses.tres" id="11_courses"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_h"]
 size = Vector2(1040, 20)
@@ -59,37 +66,37 @@ shape = SubResource("RectangleShape2D_h")
 
 [node name="Plaques" parent="." instance=ExtResource("2_point")]
 position = Vector2(-340, -110)
-tache_id = "cuisiner"
+tache_def = ExtResource("5_cuisiner")
 nom_meuble = "Plaques de cuisson"
 
 [node name="LaveVaisselle" parent="." instance=ExtResource("2_point")]
 position = Vector2(-120, -110)
-tache_id = "vaisselle"
+tache_def = ExtResource("6_vaisselle")
 nom_meuble = "Lave-vaisselle"
 
 [node name="PlanDeTravail" parent="." instance=ExtResource("2_point")]
 position = Vector2(100, -110)
-tache_id = "sirop"
+tache_def = ExtResource("7_sirop")
 nom_meuble = "Plan de travail"
 
 [node name="BlocNotes" parent="." instance=ExtResource("2_point")]
 position = Vector2(-340, 60)
-tache_id = "liste"
+tache_def = ExtResource("8_liste")
 nom_meuble = "Bloc-notes"
 
 [node name="Cellier" parent="." instance=ExtResource("2_point")]
 position = Vector2(-120, 60)
-tache_id = "ranger_courses"
+tache_def = ExtResource("9_ranger")
 nom_meuble = "Cellier"
 
 [node name="TableauDesMenus" parent="." instance=ExtResource("3_dispositif")]
 position = Vector2(-340, 230)
-fil_id = "repas"
+fil_def = ExtResource("10_repas")
 nom_dispositif = "Tableau des menus"
 
 [node name="ListeAimantee" parent="." instance=ExtResource("3_dispositif")]
 position = Vector2(-120, 230)
-fil_id = "courses"
+fil_def = ExtResource("11_courses")
 nom_dispositif = "Liste aimantée"
 
 [node name="Portes" type="Node2D" parent="."]

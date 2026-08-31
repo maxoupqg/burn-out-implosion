@@ -1,9 +1,13 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://scripts/piece.gd" id="1_piece"]
 [ext_resource type="PackedScene" path="res://scenes/point_interaction.tscn" id="2_point"]
 [ext_resource type="PackedScene" path="res://scenes/dispositif.tscn" id="3_dispositif"]
 [ext_resource type="PackedScene" path="res://scenes/porte.tscn" id="4_porte"]
+[ext_resource type="Resource" path="res://donnees/taches/temperature.tres" id="5_temperature"]
+[ext_resource type="Resource" path="res://donnees/taches/machine.tres" id="6_machine"]
+[ext_resource type="Resource" path="res://donnees/taches/etendre.tres" id="7_etendre"]
+[ext_resource type="Resource" path="res://donnees/fils/linge.tres" id="8_linge"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_h"]
 size = Vector2(1040, 20)
@@ -59,22 +63,22 @@ shape = SubResource("RectangleShape2D_h")
 
 [node name="ArmoireAPharmacie" parent="." instance=ExtResource("2_point")]
 position = Vector2(-330, -100)
-tache_id = "temperature"
+tache_def = ExtResource("5_temperature")
 nom_meuble = "Armoire à pharmacie"
 
 [node name="MachineALaver" parent="." instance=ExtResource("2_point")]
 position = Vector2(-90, -100)
-tache_id = "machine"
+tache_def = ExtResource("6_machine")
 nom_meuble = "Machine à laver"
 
 [node name="Etendoir" parent="." instance=ExtResource("2_point")]
 position = Vector2(150, -100)
-tache_id = "etendre"
+tache_def = ExtResource("7_etendre")
 nom_meuble = "Étendoir"
 
 [node name="PlanningLinge" parent="." instance=ExtResource("3_dispositif")]
 position = Vector2(-90, 120)
-fil_id = "linge"
+fil_def = ExtResource("8_linge")
 nom_dispositif = "Planning du linge"
 
 [node name="Portes" type="Node2D" parent="."]

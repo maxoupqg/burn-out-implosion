@@ -1,35 +1,65 @@
 class_name Tache
 extends RefCounted
 
-## L'unité concrète, exécutable dans une pièce (§3). Coûte du temps.
-## La faire ne ferme jamais son fil : ça repousse juste sa prochaine apparition.
+## Une tâche vivante dans une partie (§3). L'unité concrète, exécutable dans
+## une pièce. Coûte du temps.
 ##
-## Sauf récurrence 0 : la tâche est alors un one-shot. C'est ce qui permet à un
-## imprévu d'être réellement réglé — on ne « gère » pas un gosse malade
-## indéfiniment, on le soigne.
+## La faire ne ferme jamais son fil : ça repousse juste sa prochaine
+## apparition. Même découpage que `Fil` — `def` est le contenu, le reste est
+## l'état de la semaine en cours.
 
-var id: String
-var fil_id: String
-var nom: String
-var cout_base: float
-var recurrence_jours: int
+var def: TacheDef
+
+# --- État de la run ---------------------------------------------------------
+
 ## Premier jour où la tâche réapparaît.
 var disponible_le: int = 1
+## En attente de sa tâche mère. Elle n'existe pas encore dans le monde.
+var bloquee: bool = false
 ## One-shot déjà faite : elle ne revient plus.
 var terminee: bool = false
 
+# --- Lecture de la définition -----------------------------------------------
 
-func _init(p_id: String, p_fil_id: String, p_nom: String, p_cout_base: float, p_recurrence_jours: int) -> void:
-	id = p_id
-	fil_id = p_fil_id
-	nom = p_nom
-	cout_base = p_cout_base
-	recurrence_jours = p_recurrence_jours
+var id: String:
+	get:
+		return def.id
+
+var nom: String:
+	get:
+		return def.nom
+
+var cout_base: float:
+	get:
+		return def.cout_base
+
+var recurrence_jours: int:
+	get:
+		return def.recurrence_jours
+
+var delai_prerequis: int:
+	get:
+		return def.delai_prerequis
+
+## Identifiant du domaine dont elle relève. Vide si le `.tres` est incomplet —
+## `Contenu` le signale au démarrage plutôt que de laisser planter.
+var fil_id: String:
+	get:
+		return def.fil.id if def.fil != null else ""
+
+
+## Une tâche neuve. Celle qui attend une tâche mère naît fermée : elle
+## n'apparaît dans aucune pièce tant que le travail amont n'est pas fait.
+static func depuis(p_def: TacheDef) -> Tache:
+	var tache := Tache.new()
+	tache.def = p_def
+	tache.bloquee = p_def.prerequis != null
+	return tache
 
 
 func une_seule_fois() -> bool:
-	return recurrence_jours <= 0
+	return def.recurrence_jours <= 0
 
 
 func est_disponible(jour: int) -> bool:
-	return not terminee and jour >= disponible_le
+	return not terminee and not bloquee and jour >= disponible_le

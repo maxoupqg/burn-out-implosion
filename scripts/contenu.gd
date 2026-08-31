@@ -2,11 +2,16 @@ class_name Contenu
 extends RefCounted
 
 ## Le contenu de la semaine, séparé des règles. `partie.gd` dit comment le jeu
-## marche ; ce fichier dit avec quoi on joue.
+## marche ; ce fichier dit seulement où trouver avec quoi on joue.
 ##
-## La semaine est écrite pour monter : deux fils lundi, un de plus mardi,
-## un de plus mercredi avec une échéance, et jeudi l'imprévu qui n'était pas
-## au programme. C'est le jour 4 ou 5 qui doit faire mal.
+## Un `.tres` par fil et par tâche, dans `res://donnees/`. Ajouter du contenu,
+## c'est créer un fichier dans le bon dossier — pas toucher au code. Ce qui est
+## chargé ici est en lecture seule : `fils()` et `taches()` renvoient des
+## objets de partie neufs, c'est ce qui permet de recommencer sans traîner
+## l'état de la précédente.
+
+const DOSSIER_FILS := "res://donnees/fils"
+const DOSSIER_TACHES := "res://donnees/taches"
 
 ## Les pièces du logement, dans l'ordre du plan : Cuisine ↔ Salon ↔ Salle de
 ## bain. Aller de la cuisine à la salle de bain se paie donc deux fois (§9).
@@ -19,56 +24,69 @@ static func piece_au_hasard() -> String:
 	return String(PIECES.pick_random())
 
 
-## Renvoie des objets neufs à chaque appel : c'est ce qui permet de
-## recommencer une partie sans traîner l'état de la précédente.
 static func fils() -> Array[Fil]:
+	var defs := _charger(DOSSIER_FILS)
+
+	# Ordre stable, et lisible : la semaine dans l'ordre où elle arrive. Le
+	# bandeau s'en sert, et le §7 aussi — c'est le dernier fil ouvert qui tombe
+	# quand on se lève avec une tête trop petite.
+	defs.sort_custom(func(a: FilDef, b: FilDef) -> bool:
+		if a.jour_arrivee != b.jour_arrivee:
+			return a.jour_arrivee < b.jour_arrivee
+		return a.id < b.id
+	)
+
 	var liste: Array[Fil] = []
-
-	liste.append(Fil.new("repas", "Les repas"))
-	liste.append(Fil.new("linge", "Le linge"))
-
-	var courses := Fil.new("courses", "Les courses")
-	courses.jour_arrivee = 2
-	liste.append(courses)
-
-	var factures := Fil.new("factures", "Les factures")
-	factures.jour_arrivee = 3
-	factures.jour_echeance = 6
-	liste.append(factures)
-
-	# L'imprévu. Non ancrable : aucun dispositif ne le porte à ta place, on
-	# paie en personne. Temporaire : il se ferme quand c'est réglé. Et il
-	# enfle deux fois plus vite, parce qu'on ne le remet pas à demain.
-	var malade := Fil.new("malade", "Le petit est malade", false)
-	malade.jour_arrivee = 4
-	malade.annonce = false
-	malade.temporaire = true
-	malade.tension_par_nuit = 2
-	liste.append(malade)
-
-	for fil in liste:
-		fil.etat = Fil.Etat.OUVERT if fil.jour_arrivee <= 1 else Fil.Etat.ENATTENTE
-
+	for def: FilDef in defs:
+		liste.append(Fil.depuis(def))
 	return liste
 
 
 static func taches() -> Array[Tache]:
-	var liste: Array[Tache] = [
-		# Cuisine
-		Tache.new("cuisiner", "repas", "Faire à manger", 2.0, 1),
-		Tache.new("vaisselle", "repas", "Vider le lave-vaisselle", 1.0, 1),
-		Tache.new("liste", "courses", "Faire la liste", 1.0, 2),
-		Tache.new("ranger_courses", "courses", "Ranger les courses", 1.5, 3),
-		# Salle de bain
-		Tache.new("machine", "linge", "Lancer une machine", 1.0, 2),
-		Tache.new("etendre", "linge", "Étendre le linge", 2.0, 2),
-		# Salon
-		Tache.new("courrier", "factures", "Ouvrir le courrier", 1.0, 2),
-		Tache.new("payer", "factures", "Payer les factures", 2.0, 3),
-		# L'imprévu : cher, une seule fois, et éclaté dans les trois pièces.
-		# C'est voulu : le jour où le petit est malade, on ne fait que marcher.
-		Tache.new("temperature", "malade", "Prendre la température", 2.0, 0),
-		Tache.new("medecin", "malade", "Appeler le médecin", 2.5, 0),
-		Tache.new("sirop", "malade", "Préparer le sirop", 3.0, 0),
-	]
+	var defs := _charger(DOSSIER_TACHES)
+	defs.sort_custom(func(a: TacheDef, b: TacheDef) -> bool: return a.id < b.id)
+
+	var liste: Array[Tache] = []
+	for def: TacheDef in defs:
+		# Une tâche sans fil ne serait rattachée à rien : elle n'apparaîtrait
+		# nulle part et empêcherait son domaine de se clore. Autant le dire.
+		if def.fil == null:
+			push_warning("Tâche « %s » sans fil : elle ne sera pas jouable." % def.id)
+			continue
+		liste.append(Tache.depuis(def))
 	return liste
+
+
+## Charge tous les `.tres` d'un dossier. Les identifiants vides ou en double
+## sont signalés ici : ce sont les deux seules façons de casser le contenu, et
+## elles seraient invisibles autrement — la partie se lancerait, un fil
+## manquerait, et rien ne le dirait.
+static func _charger(dossier: String) -> Array[Resource]:
+	var defs: Array[Resource] = []
+	var vus := {}
+
+	for fichier in DirAccess.get_files_at(dossier):
+		# À l'export, Godot convertit les ressources texte en binaire et laisse
+		# un `.remap` : c'est le nom d'origine qu'il faut charger.
+		var nom_fichier := fichier.trim_suffix(".remap")
+		if not nom_fichier.ends_with(".tres"):
+			continue
+
+		# Volontairement non typé : `id` n'existe que sur les scripts de
+		# définition, pas sur `Resource`, et le typer ferait échouer la
+		# compilation sur les lignes suivantes.
+		var def = ResourceLoader.load(dossier.path_join(nom_fichier))
+		if def == null:
+			continue
+
+		if String(def.id).is_empty():
+			push_warning("%s n'a pas d'identifiant : ignoré." % nom_fichier)
+			continue
+		if vus.has(def.id):
+			push_warning("Identifiant « %s » en double : %s ignoré." % [def.id, nom_fichier])
+			continue
+
+		vus[def.id] = true
+		defs.append(def)
+
+	return defs
