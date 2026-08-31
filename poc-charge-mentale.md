@@ -336,8 +336,74 @@ Tout le reste est de la plomberie qu'on ne construit pas avant de savoir si le c
 ## 15. Surcouches, plus tard
 
 - **Phase travail** — verbes réduits à abattre / esquiver. Produit de l'argent, de la flexibilité, et des fils qu'on ramène à la maison.
-- **Phase sommeil jouable** — la nuit devient une scène au lieu d'un calcul.
+- **Phase sommeil jouable** — la nuit devient une scène au lieu d'un calcul. Assez grosse pour avoir sa propre section : voir §16.
 - **Casse subie des dispositifs** — l'usure par négligence est passée dans le socle (§3). Reste à ajouter la casse qu'on ne contrôle pas : vacances, maladie, absence du conjoint.
 - **Conjoint** — fiabilité qui monte à force de délégations réussies, jusqu'au transfert complet d'un domaine.
 - **Roguelite** — seuls les dispositifs ancrés à fond persistent entre les runs, et ils se dégradent s'ils ne sont pas entretenus.
 - **Satire** — tout le vocabulaire d'interface parle en « optimisation », « efficience », « quick wins » pendant que le joueur ramasse.
+
+---
+
+## 16. La nuit jouable — le monde des rêves
+
+**Décidé : on le fera.** Pas maintenant, et à condition d'entrée (fin de section).
+
+### Le problème que ça résout
+
+Un simulateur de charge, aussi juste soit-il, ne retient personne très longtemps. Le jour ne propose qu'une seule couleur d'émotion : la pression. Il manque une **ambivalence** — un endroit où le joueur ait envie d'aller, et qui rende la journée intéressante *autrement* que par la culpabilité.
+
+La nuit est le seul espace disponible, et elle est déjà écrite : le §7 fait un calcul là où il pourrait y avoir une scène.
+
+### Les deux couplages refusés
+
+Le réflexe est de faire dépendre la difficulté nocturne de la qualité de la journée, et de rapporter du butin. Les deux sens possibles sont mauvais, et il n'y a pas de dosage entre eux :
+
+- **Bonne journée → nuit facile → bon butin → meilleure journée.** Renforcement positif. Thématiquement parfait, la spirale est le sujet. Mécaniquement, la semaine se décide mardi et on joue trois jours une partie déjà perdue.
+- **Mauvaise journée → nuit dure → meilleur butin.** Risque/récompense classique, et ça **inverse le propos** : se coucher saturé devient rentable, le joueur farme la surcharge. Le §1 est mort.
+
+**Donc : pas de butin.** Le problème ne vient pas du réglage, il vient de la nature de ce que la nuit rend.
+
+### La règle centrale
+
+> **La journée n'ajuste pas la difficulté de la nuit. Elle écrit le niveau.**
+> **On n'en rapporte pas de la puissance. On en rapporte des cases.**
+
+Le rêve n'a pas d'économie propre : ni objets, ni statistiques, ni monnaie. Son unique sortie est la taille de la tête du lendemain — exactement la variable que le §7 calcule aujourd'hui dans un tableau.
+
+> **Le §16 ne s'ajoute pas au §7. Il le remplace.** Le barème « 0–2 cases → +1 slot » devient le *résumé* d'une nuit qu'on n'a pas jouée, pas une règle parallèle.
+
+Conséquence à tenir : **le plancher à 4 et le plafond à 6 restent le plafond du monde.** Une nuit héroïque ne donne pas 8 cases. On ne peut pas gagner sa journée en dormant.
+
+### Ce que la journée écrit
+
+L'état des fils au coucher devient la géographie du rêve. Rien n'est tiré au sort tant qu'il reste un fil à traduire.
+
+| État du fil au coucher | Ce qu'il devient dans le rêve |
+|---|---|
+| **Ancré** | un mur déjà bâti — raccourci, salle sûre, porte qui s'ouvre seule |
+| **Ouvert, tension 0** | un couloir neutre, qu'on traverse |
+| **Ouvert, tension 2** | le couloir s'allonge, la salle se répète, on repasse au même endroit |
+| **Lâché, au sol** | une chose qui poursuit, et **que le joueur ne peut pas nommer** |
+| **Réglé / fermé** | absent — il n'a rien laissé derrière lui |
+
+La ligne qui compte est celle du fil lâché. Le §6 l'a effacé du bandeau : le joueur ne l'a **plus en mémoire**, au sens propre. Il le retrouve la nuit sans savoir ce que c'est. C'est le §6 rendu littéral, et ça ne coûte aucune mécanique nouvelle.
+
+**Corollaire de portée :** le procédural n'a presque rien à générer. La journée a déjà écrit le plan. Ce qui reste à produire, c'est de la variation d'habillage, pas de la conception de niveau.
+
+### Ce qu'on ne construit pas
+
+- **Pas d'inventaire, pas d'items, pas de stats.** Dès qu'un objet rapporté modifie le coût d'une tâche, on a rouvert les deux couplages refusés plus haut.
+- **Pas de run longue.** La nuit dure des minutes, pas un quart d'heure. Le risque n°1 de ce genre de jeu à deux moitiés — Moonlighter, Cult of the Lamb — c'est que la moitié spectaculaire dévore l'autre et transforme la gestion en corvée. Ici la journée est le jeu ; la nuit en est la conséquence.
+- **Pas de mort définitive dans le rêve.** Rater sa nuit, c'est se lever avec une case en moins. C'est déjà lourd. L'effondrement reste ce qu'il est au §11 : trois fils au sol, en plein jour.
+
+### Condition d'entrée
+
+Ne pas commencer avant que **le jour tienne seul**. Le POC actuel ne prouve rien contre lui : il tourne avec 2 verbes sur 6 et un contenu volontairement réduit (§13).
+
+À faire d'abord, dans l'ordre :
+
+1. **Déléguer** (§4) — l'axe symétrique d'Ancrer, la seconde vraie décision du jeu, non implémentée.
+2. **Vider sa tête** (§5) — la soupape, non implémentée.
+3. Une semaine rejouée avec les six verbes.
+
+Si le jour tient 40 minutes avec ça, la nuit devient un projet à part entière. S'il ne les tient pas, aucun donjon ne l'aurait sauvé — il aurait juste caché le problème sous du contenu.
