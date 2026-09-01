@@ -19,6 +19,9 @@ extends Resource
 @export var cout_base: float = 1.0
 ## Jours avant réapparition. 0 = one-shot, la tâche ne revient jamais.
 @export var recurrence_jours: int = 1
+## Peut-on la passer à quelqu'un d'autre (§4) ? Presque tout se délègue ; ce
+## qui ne se délègue pas doit avoir une raison qu'on peut dire à voix haute.
+@export var delegable: bool = true
 
 @export_group("Enchaînement")
 ## La tâche qui ouvre celle-ci. Tant qu'elle n'est pas faite, celle-ci n'existe

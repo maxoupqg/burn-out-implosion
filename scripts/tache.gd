@@ -41,6 +41,10 @@ var delai_prerequis: int:
 	get:
 		return def.delai_prerequis
 
+var delegable: bool:
+	get:
+		return def.delegable
+
 ## Identifiant du domaine dont elle relève. Vide si le `.tres` est incomplet —
 ## `Contenu` le signale au démarrage plutôt que de laisser planter.
 var fil_id: String:

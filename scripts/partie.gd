@@ -17,6 +17,21 @@ const JOURS_SEMAINE := 7
 const COUT_ANCRAGE := 4.0
 ## S'asseoir coûte du temps et ne produit rien. C'est là tout l'intérêt (§11).
 const COUT_ASSIS := 3.0
+## Déléguer ne coûte quasiment rien en temps (§4) : le prix est ailleurs, dans
+## la relance qu'il faudra aller faire et dans la tension qui monte en attendant.
+const COUT_DELEGATION := 0.5
+## Relancer coûte moins que déléguer, et il faut que ça reste vrai : la somme
+## des deux est le seuil au-dessus duquel une tâche vaut la peine d'être passée
+## à quelqu'un. À 0,75, on délègue ce qui coûte cher et on fait soi-même le
+## reste. Pas zéro : sinon on finirait la journée à court de temps en ramassant
+## quand même toutes ses relances gratuitement.
+const COUT_RELANCE := 0.25
+## Il n'y a qu'une autre personne dans le POC. Son nom est ici et pas sur la
+## scène : le bandeau doit pouvoir le dire sans que le salon soit chargé.
+const NOM_DELEGATAIRE := "Sam"
+## On ne court pas derrière quelqu'un dans l'heure. La relance tombe le
+## lendemain — c'est ce décalage qui fait de la délégation un emprunt.
+const DELAI_RELANCE := 1
 ## Changer de pièce (§9). Petit, mais payé au tarif du jour : c'est ce qui rend
 ## la dispersion chère sans jamais l'interdire.
 const COUT_PIECE := 0.5
@@ -56,6 +71,9 @@ var _assis_aujourdhui: bool = false
 var fils: Dictionary = {}
 ## id -> Tache
 var taches: Dictionary = {}
+## Ce qu'on a délégué et qu'il faudra réclamer. Dans l'ordre où on l'a lâché :
+## on relance ce qui traîne depuis le plus longtemps.
+var relances: Array[Relance] = []
 
 
 func _ready() -> void:
@@ -76,6 +94,7 @@ func reinitialiser() -> void:
 
 	fils.clear()
 	taches.clear()
+	relances.clear()
 	for fil in Contenu.fils():
 		fils[fil.id] = fil
 	for tache in Contenu.taches():
@@ -104,9 +123,14 @@ func fils_au_sol() -> Array[Fil]:
 	return tombes
 
 
-## Cases réellement occupées dans la tête : un fil négligé en prend deux.
+## Cases réellement occupées dans la tête : un fil négligé en prend deux, et
+## chaque relance en attente en prend une.
+##
+## C'est là, et nulle part ailleurs, que se paie la délégation (§4). « Il faut
+## que je pense à lui redemander » n'est pas du travail restant : c'est une
+## place prise dans la tête, et c'est exactement ce que le jeu raconte.
 func cases_occupees() -> int:
-	var total := 0
+	var total := relances_en_tete().size()
 	for fil in fils_ouverts():
 		total += fil.taille()
 	return total
@@ -124,6 +148,53 @@ func taches_du_fil(fil_id: String) -> Array[Tache]:
 	return liste
 
 
+## Les relances qui pèsent : celles dont le domaine est encore quelque part.
+## Chacune prend une case, même sur un fil ancré — le dispositif se souvient du
+## domaine, il ne se souvient pas qu'il faut relancer quelqu'un.
+##
+## Celles d'un fil tombé par terre n'y sont pas : elles dorment jusqu'à ce qu'on
+## le ramasse. Le jeu ne dit jamais ce qu'on a lâché (§6), et ce n'est pas à
+## l'autre de nous le rappeler.
+func relances_en_tete() -> Array[Relance]:
+	var portees: Array[Relance] = []
+	for relance in relances:
+		var fil: Fil = fils.get(relance.tache.fil_id)
+		if fil != null and fil.actif():
+			portees.append(relance)
+	return portees
+
+
+## Celles qu'on peut aller réclamer aujourd'hui. Celles du jour même n'y sont
+## pas : on vient tout juste de demander.
+func relances_dues() -> Array[Relance]:
+	var dues: Array[Relance] = []
+	for relance in relances_en_tete():
+		if relance.due(jour):
+			dues.append(relance)
+	return dues
+
+
+## La relance qui pèse sur cette tâche précise, s'il y en a une.
+##
+## Le meuble s'en sert pour dire que le travail est déjà parti chez quelqu'un.
+## Sans ça, ne pas relancer est un piège muet : la tâche revient plein tarif sur
+## son meuble, la case reste gelée dans la tête, et rien à l'écran ne relie les
+## deux — le joueur paie les deux sans comprendre qu'il s'agit de la même chose.
+func relance_de(tache_id: String) -> Relance:
+	for relance in relances_en_tete():
+		if relance.tache.id == tache_id:
+			return relance
+	return null
+
+
+## Une relance qui traîne sur ce fil, réclamable ou pas encore.
+func relance_en_attente(fil_id: String) -> bool:
+	for relance in relances:
+		if relance.tache.fil_id == fil_id:
+			return true
+	return false
+
+
 ## Une tâche n'existe dans le monde que si son fil est là. Tant que « Les
 ## courses » n'est pas arrivé, sa liste n'est pas à faire.
 func tache_active(tache: Tache) -> bool:
@@ -134,7 +205,12 @@ func tache_active(tache: Tache) -> bool:
 
 
 ## Un fil est négligé tant qu'une de ses tâches attend encore aujourd'hui.
-## Se coucher là-dessus fera monter sa tension.
+##
+## Une relance en attente n'entre pas là-dedans, et c'est délibéré : la tension
+## dit « le travail n'a pas été fait », or une tâche déléguée a été faite. Si la
+## relance faisait monter la tension, déléguer ferait décrocher les dispositifs,
+## et le joueur qui délègue *et* ancre *et* relance se ferait punir pour avoir
+## bien joué. Le prix de la délégation est en cases, pas ici.
 func fil_neglige(fil: Fil) -> bool:
 	for tache in taches_du_fil(fil.id):
 		if tache.est_disponible(jour):
@@ -184,6 +260,17 @@ func faire_tache(tache_id: String) -> bool:
 	if not depenser_temps(tache.cout_base):
 		return false
 
+	_resoudre(tache)
+	taches_change.emit()
+	_verifier_cloture(tache.fil_id)
+	return true
+
+
+## Ce qui arrive à une tâche une fois qu'elle n'est plus à faire — qu'on l'ait
+## faite ou passée à quelqu'un. Le repas est cuit dans les deux cas, donc le
+## lave-vaisselle est plein dans les deux cas : déléguer ne dispense pas de la
+## suite, sinon ce serait un effacement et pas un transfert.
+func _resoudre(tache: Tache) -> void:
 	if tache.une_seule_fois():
 		tache.terminee = true
 	elif tache.def.prerequis != null:
@@ -201,7 +288,79 @@ func faire_tache(tache_id: String) -> bool:
 			suivante.bloquee = false
 			suivante.disponible_le = jour + suivante.delai_prerequis
 
+
+## Déléguer (§4) : l'exact contraire d'ancrer. Ancrer coûte très cher en temps
+## et rend une case ; déléguer ne coûte presque pas de temps et en prend une.
+##
+## Il faut donc une case libre, comme pour ancrer et comme pour s'asseoir : on
+## ne se décharge pas sur quelqu'un la tête déjà pleine. Déléguer est l'outil de
+## celui qui manque de temps, pas de celui qui manque de place.
+func peut_deleguer(tache: Tache) -> bool:
+	if not tache_active(tache) or not tache.delegable:
+		return false
+	# Elle est déjà chez lui : redemander, c'est relancer, et ça se fait devant
+	# lui. Sinon on paierait deux cases pour la même chose — et le bandeau
+	# afficherait deux fois la même ligne, ce qui ne veut plus rien dire.
+	if relance_de(tache.id) != null:
+		return false
+	if cases_libres() <= 0:
+		return false
+	return cout_reel(COUT_DELEGATION) <= temps_restant
+
+
+func deleguer_tache(tache_id: String) -> bool:
+	var tache: Tache = taches.get(tache_id)
+	if not peut_deleguer(tache):
+		return false
+	if not depenser_temps(COUT_DELEGATION):
+		return false
+
+	_confier(tache)
+
 	taches_change.emit()
+	# Le fil ne change pas d'état, mais une case vient de se prendre dans la
+	# tête : le travail est parti, la charge est restée. Ça doit se voir dans la
+	# seconde, sinon déléguer a l'air gratuit.
+	# Inutile de vérifier la clôture : la relance vient précisément de l'empêcher.
+	fils_change.emit()
+	return true
+
+
+## Passer la tâche, et repartir avec la charge de vérifier. Le travail est fait,
+## la place est prise : c'est très exactement le marché de la délégation.
+func _confier(tache: Tache) -> void:
+	_resoudre(tache)
+	var relance := Relance.new()
+	relance.tache = tache
+	relance.due_le = jour + DELAI_RELANCE
+	relances.append(relance)
+
+
+## Relancer : aller réclamer ce qu'on a délégué. On règle la plus vieille —
+## c'est celle qui pourrit le plus longtemps un fil.
+func peut_relancer() -> bool:
+	return not relances_dues().is_empty() and cout_reel(COUT_RELANCE) <= temps_restant
+
+
+func relancer() -> bool:
+	if not peut_relancer():
+		return false
+	var relance := relances_dues()[0]
+	if not depenser_temps(COUT_RELANCE):
+		return false
+
+	relances.erase(relance)
+	# Relancer, ce n'est pas cocher « vérifié » : c'est lui redemander de le
+	# faire. Si la tâche est revenue, il la refait, et il faudra revenir demain —
+	# la délégation est un arrangement, pas un coup. Si elle n'est pas là
+	# aujourd'hui, l'arrangement s'arrête et la case se libère : c'est le seul
+	# moyen d'en sortir, venir un jour où il n'y a rien à refaire.
+	var tache := relance.tache
+	if tache_active(tache):
+		_confier(tache)
+
+	taches_change.emit()
+	fils_change.emit()
 	_verifier_cloture(tache.fil_id)
 	return true
 
@@ -215,6 +374,11 @@ func _verifier_cloture(fil_id: String) -> void:
 	for tache in taches_du_fil(fil_id):
 		if not tache.terminee:
 			return
+	# Une relance en attente suffit à garder le fil ouvert : sans ça on solderait
+	# un imprévu en déléguant tout, sans jamais vérifier que ça a été fait. Ce
+	# n'est pas réglé tant qu'on n'a pas demandé si ça l'était.
+	if relance_en_attente(fil_id):
+		return
 	fil.etat = Fil.Etat.FERME
 	fil_ferme.emit(fil)
 	fils_change.emit()
@@ -389,9 +553,19 @@ func coucher() -> void:
 	jour += 1
 
 	# 6. On peut perdre au réveil : se lever avec une tête plus petite que ce
-	#    qu'on porte en fait tomber un.
+	#    qu'on porte en fait tomber un. Les fils partent en premier — ce sont eux
+	#    qu'on remarque. S'il ne reste que des choses à redemander, on en oublie
+	#    une, et personne ne le dit : c'est très exactement comme ça que ça se
+	#    passe.
 	while cases_occupees() > slots:
-		_lacher(fils_ouverts().back())
+		var ouverts := fils_ouverts()
+		if not ouverts.is_empty():
+			_lacher(ouverts.back())
+			continue
+		var attentes := relances_en_tete()
+		if attentes.is_empty():
+			break
+		relances.erase(attentes[0])
 
 	# 7. Ce que la journée apporte. Un fil peut déborder dès son arrivée.
 	var arrivants: Array[Fil] = []
