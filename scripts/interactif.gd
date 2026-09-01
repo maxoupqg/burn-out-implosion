@@ -32,9 +32,21 @@ func disponible() -> bool:
 	return false
 
 
+## Y a-t-il quelque chose à déléguer ici (§4) ? Presque rien : on ne délègue
+## pas un canapé, ni un dispositif, ni un fil ramassé par terre. Seul le meuble
+## qui porte une tâche répond oui.
+func delegable() -> bool:
+	return false
+
+
 ## Exécute et paie l'action. Renvoie le coût réel en unités de temps,
 ## ou -1 si l'action n'a pas pu être payée.
 func _executer() -> float:
+	return -1.0
+
+
+## Même contrat, pour le second verbe.
+func _deleguer() -> float:
 	return -1.0
 
 
@@ -42,11 +54,13 @@ func rafraichir() -> void:
 	pass
 
 
-func lancer() -> bool:
-	if occupe or not disponible():
+func lancer(en_deleguant: bool = false) -> bool:
+	if occupe:
+		return false
+	if not (delegable() if en_deleguant else disponible()):
 		return false
 
-	var cout := _executer()
+	var cout := _deleguer() if en_deleguant else _executer()
 	if cout < 0.0:
 		return false
 

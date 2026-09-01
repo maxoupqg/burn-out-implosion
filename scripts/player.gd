@@ -51,22 +51,27 @@ func _physics_process(delta: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if not event.is_action_pressed("interagir"):
+	# Deux verbes sur deux touches. Déléguer ne vise pas forcément la même chose
+	# qu'agir : un meuble dont la tâche est trop chère reste délégable.
+	var en_deleguant := event.is_action_pressed("deleguer")
+	if not en_deleguant and not event.is_action_pressed("interagir"):
 		return
 	if _occupe_par != null and is_instance_valid(_occupe_par) and _occupe_par.occupe:
 		return
 
-	var point := _plus_proche()
-	if point != null and point.lancer():
+	var point := _plus_proche(en_deleguant)
+	if point != null and point.lancer(en_deleguant):
 		_occupe_par = point
 
 
-func _plus_proche() -> Interactif:
+func _plus_proche(en_deleguant: bool = false) -> Interactif:
 	var meilleur: Interactif = null
 	var distance_min := INF
 
 	for point in _a_portee:
-		if not is_instance_valid(point) or not point.disponible():
+		if not is_instance_valid(point):
+			continue
+		if not (point.delegable() if en_deleguant else point.disponible()):
 			continue
 		var d := global_position.distance_to(point.global_position)
 		if d < distance_min:
