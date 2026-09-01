@@ -20,6 +20,10 @@ const COULEUR_VIDE := Color(1, 1, 1, 0.12)
 const COULEUR_NEGLIGE := Color(0.95, 0.55, 0.3)
 const COULEUR_A_JOUR := Color(0.55, 0.78, 0.6)
 const COULEUR_TENSION := Color(0.55, 0.12, 0.12)
+## Une relance : ni verte ni orange. Ce n'est pas du travail en retard, c'est
+## une place prise. Elle a sa propre couleur pour qu'on ne la confonde pas.
+const COULEUR_DELEGUE := Color(0.62, 0.66, 0.78)
+const COULEUR_A_RELANCER := Color(0.78, 0.72, 0.5)
 const COULEUR_TEXTE_FIL := Color(0.1, 0.09, 0.11)
 const COULEUR_CALME := Color(0.75, 0.78, 0.8)
 const COULEUR_CRAME := Color(1.0, 0.35, 0.28)
@@ -91,6 +95,12 @@ func _maj_tete() -> void:
 	for fil in Partie.fils_ouverts():
 		_slots.add_child(_case_fil(fil))
 
+	# Une relance occupe la tête au même titre qu'un fil, et elle doit se voir
+	# au même endroit. C'est ce qui rend déléguer lisible : la tâche disparaît
+	# du monde, et une case apparaît ici.
+	for relance in Partie.relances_en_tete():
+		_slots.add_child(_case_relance(relance))
+
 	for _i in Partie.cases_libres():
 		var vide := ColorRect.new()
 		vide.custom_minimum_size = Vector2(LARGEUR_CASE, HAUTEUR_CASE)
@@ -135,9 +145,11 @@ func _case_fil(fil: Fil) -> ColorRect:
 	nom.add_theme_font_size_override("font_size", 14)
 	nom.add_theme_color_override("font_color", COULEUR_TEXTE_FIL)
 	nom.text = fil.nom
+
 	if fil.jour_echeance > 0:
 		nom.text += "\navant %s" % _nom_jour(fil.jour_echeance)
 		nom.add_theme_font_size_override("font_size", 12)
+
 	case.add_child(nom)
 
 	# Jauge de tension : ce qu'on va payer si on se couche là-dessus.
@@ -149,6 +161,37 @@ func _case_fil(fil: Fil) -> ColorRect:
 		jauge.anchor_right = clampf(float(fil.tension) / float(Fil.TENSION_SEUIL), 0.0, 1.0)
 		jauge.offset_top = -5.0
 		case.add_child(jauge)
+
+	return case
+
+
+## Une case de relance. Une seule case, jamais deux : ça ne pourrit pas comme
+## un fil, ça reste là bêtement jusqu'à ce qu'on aille redemander. Le nom de la
+## tâche est écrit dessus — sinon déléguer redevient un bouton, et ce qu'on
+## porte redevient un chiffre.
+func _case_relance(relance: Relance) -> ColorRect:
+	var case := ColorRect.new()
+	case.custom_minimum_size = Vector2(LARGEUR_CASE, HAUTEUR_CASE)
+	# Tant qu'on ne peut pas encore réclamer, la case est là sans être
+	# actionnable : c'est le pire moment, et il doit se lire comme tel.
+	case.color = COULEUR_A_RELANCER if relance.due(Partie.jour) else COULEUR_DELEGUE
+
+	var nom := Label.new()
+	nom.anchor_right = 1.0
+	nom.anchor_bottom = 1.0
+	nom.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	nom.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	nom.add_theme_font_size_override("font_size", 12)
+	nom.add_theme_color_override("font_color", COULEUR_TEXTE_FIL)
+	# On nomme la personne, pas seulement la tâche. Sans ça la case porte le même
+	# titre que le meuble d'à côté — « Vider le lave-vaisselle » d'hier qu'on n'a
+	# pas vérifié, et celui d'aujourd'hui qui attend — et on croit à un doublon.
+	nom.text = "%s %s\n%s" % [
+		"relancer" if relance.due(Partie.jour) else "délégué à",
+		Partie.NOM_DELEGATAIRE,
+		relance.tache.nom,
+	]
+	case.add_child(nom)
 
 	return case
 
