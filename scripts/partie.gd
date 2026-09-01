@@ -414,26 +414,43 @@ func _verifier_cloture(fil_id: String) -> void:
 
 ## Ancrer (§4) : ferme le fil et libère ses cases. Ses tâches continuent
 ## d'exister — le dispositif se souvient à ta place, il ne fait pas le boulot.
-func peut_ancrer(fil_id: String) -> bool:
+##
+## Sauf les dispositifs qui, eux, le font vraiment. Un prélèvement automatique
+## paie la facture ; à partir de là il n'y a plus de courrier à ouvrir ni de
+## virement à faire, et le fil sort du jeu. Un tableau des menus, lui, ne
+## cuisine pas : il rappelle, et il s'use si on ne le nourrit pas.
+##
+## Ce n'est pas le retour de l'allègement refusé au §4 : là on parlait de faire
+## baisser le coût des tâches d'un fil ancré, ce qui brouillait Ancrer et
+## Déléguer. Ici il n'y a plus de tâches du tout. C'est tout ou rien, et le
+## joueur voit lequel des deux il achète avant de payer.
+func peut_ancrer(fil_id: String, cout: float = COUT_ANCRAGE) -> bool:
 	var fil: Fil = fils.get(fil_id)
 	if fil == null or fil.etat != Fil.Etat.OUVERT or not fil.ancrable:
 		return false
 	# Exige une case libre : on ne s'ancre pas la tête pleine.
 	if cases_occupees() >= slots:
 		return false
-	return cout_reel(COUT_ANCRAGE) <= temps_restant
+	return cout_reel(cout) <= temps_restant
 
 
-func ancrer_fil(fil_id: String) -> bool:
-	if not peut_ancrer(fil_id):
+func ancrer_fil(fil_id: String, cout: float = COUT_ANCRAGE, definitif: bool = false) -> bool:
+	if not peut_ancrer(fil_id, cout):
 		return false
 
 	var fil: Fil = fils[fil_id]
-	if not depenser_temps(COUT_ANCRAGE):
+	if not depenser_temps(cout):
 		return false
 
-	fil.etat = Fil.Etat.ANCRE
 	fil.tension = 0
+	if definitif:
+		# Réglé, au même titre qu'un imprévu qu'on a fini de gérer : le fil rend
+		# sa case, ses tâches quittent le monde, et il ne revient pas.
+		fil.etat = Fil.Etat.FERME
+		fil_ferme.emit(fil)
+		taches_change.emit()
+	else:
+		fil.etat = Fil.Etat.ANCRE
 	fils_change.emit()
 	return true
 

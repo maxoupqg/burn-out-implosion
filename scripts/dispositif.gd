@@ -10,6 +10,7 @@ extends Interactif
 const COULEUR_LIBRE := Color(0.38, 0.42, 0.5)
 const COULEUR_PRET := Color(0.55, 0.78, 0.6)
 const COULEUR_ANCRE := Color(0.42, 0.66, 0.88)
+const COULEUR_REGLE := Color(0.45, 0.72, 0.55)
 const COULEUR_USE := Color(0.72, 0.5, 0.28)
 const COULEUR_BLOQUE := Color(1.0, 0.4, 0.35)
 
@@ -17,6 +18,19 @@ const COULEUR_BLOQUE := Color(1.0, 0.4, 0.35)
 ## `donnees/fils/`. Un emplacement typé encode gratuitement la règle du §9.
 @export var fil_def: FilDef
 @export var nom_dispositif: String = "Dispositif"
+## Ce dispositif fait-il le travail, ou se contente-t-il de s'en souvenir ?
+##
+## Un prélèvement automatique paie vraiment : plus de courrier à ouvrir, plus
+## de virement, le fil sort du jeu. Un tableau des menus ne cuisine pas — il
+## rappelle, et il s'use. La propriété est ici et pas sur le fil : c'est
+## l'objet qui travaille ou non, et un même domaine pourra un jour avoir les
+## deux (un pense-bête et une vraie automatisation).
+@export var definitif: bool = false
+## Ce que coûte la mise en place, en unités de temps, avant multiplicateur.
+## Réglable par emplacement : un prélèvement automatique ne se monte pas au
+## même prix qu'un tableau qu'on accroche au mur. Valeur en dur et pas
+## `Partie.COUT_ANCRAGE` : l'autoload n'existe pas dans l'éditeur.
+@export var cout_ancrage: float = 4.0
 
 @onready var _panneau: Polygon2D = $Panneau
 
@@ -30,13 +44,21 @@ func ancre() -> bool:
 	return f != null and f.etat == Fil.Etat.ANCRE
 
 
+## Le fil que ce dispositif a réglé pour de bon. On ne le teste que sur un
+## dispositif définitif : un fil temporaire fermé tout seul n'appartient à
+## personne, et son emplacement doit rester muet.
+func regle() -> bool:
+	var f := fil()
+	return definitif and f != null and f.etat == Fil.Etat.FERME
+
+
 func disponible() -> bool:
-	return fil_def != null and Partie.peut_ancrer(fil_def.id)
+	return fil_def != null and Partie.peut_ancrer(fil_def.id, cout_ancrage)
 
 
 func _executer() -> float:
-	var cout := Partie.cout_reel(Partie.COUT_ANCRAGE)
-	if not Partie.ancrer_fil(fil_def.id):
+	var cout := Partie.cout_reel(cout_ancrage)
+	if not Partie.ancrer_fil(fil_def.id, cout_ancrage, definitif):
 		return -1.0
 	return cout
 
@@ -47,6 +69,14 @@ func rafraichir() -> void:
 	if f == null:
 		_etiquette.text = nom_dispositif
 		_etiquette.modulate = Color(1, 1, 1, 0.3)
+		return
+
+	# Rien à entretenir, rien à surveiller : la machine s'en charge. C'est le
+	# seul endroit du jeu où quelque chose est vraiment fini.
+	if regle():
+		_panneau.color = COULEUR_REGLE
+		_etiquette.text = "%s\nça se fait tout seul" % f.nom
+		_etiquette.modulate = Color(1, 1, 1, 0.75)
 		return
 
 	# Un fil ancré reste visible, accroché à son dispositif (§3).
@@ -60,8 +90,14 @@ func rafraichir() -> void:
 
 	if disponible():
 		_panneau.color = COULEUR_PRET
-		_etiquette.text = "%s : ancrer « %s »   %.1f" % [
-			nom_dispositif, f.nom, Partie.cout_reel(Partie.COUT_ANCRAGE)
+		# Dire lequel des deux on achète, avant de payer. Sans cette ligne, la
+		# différence entre « ça se fait tout seul » et « à entretenir » ne se
+		# découvre qu'après coup, et elle vaut deux unités de temps.
+		_etiquette.text = "%s : ancrer « %s »   %.1f\n%s" % [
+			nom_dispositif,
+			f.nom,
+			Partie.cout_reel(cout_ancrage),
+			"tu n'y touches plus" if definitif else "à entretenir",
 		]
 		_etiquette.modulate = Color(1, 1, 1)
 		return

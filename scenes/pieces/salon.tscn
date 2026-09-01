@@ -82,6 +82,8 @@ nom_meuble = "Téléphone"
 position = Vector2(-330, 60)
 fil_def = ExtResource("9_factures")
 nom_dispositif = "Prélèvement automatique"
+definitif = true
+cout_ancrage = 6.0
 
 [node name="Canape" parent="." instance=ExtResource("5_canape")]
 position = Vector2(-40, 90)
