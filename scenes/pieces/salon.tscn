@@ -1,10 +1,11 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scripts/piece.gd" id="1_piece"]
 [ext_resource type="PackedScene" path="res://scenes/point_interaction.tscn" id="2_point"]
 [ext_resource type="PackedScene" path="res://scenes/dispositif.tscn" id="3_dispositif"]
 [ext_resource type="PackedScene" path="res://scenes/porte.tscn" id="4_porte"]
 [ext_resource type="PackedScene" path="res://scenes/canape.tscn" id="5_canape"]
+[ext_resource type="PackedScene" path="res://scenes/pnj.tscn" id="10_pnj"]
 [ext_resource type="Resource" path="res://donnees/taches/courrier.tres" id="6_courrier"]
 [ext_resource type="Resource" path="res://donnees/taches/payer.tres" id="7_payer"]
 [ext_resource type="Resource" path="res://donnees/taches/medecin.tres" id="8_medecin"]
@@ -84,6 +85,9 @@ nom_dispositif = "Prélèvement automatique"
 
 [node name="Canape" parent="." instance=ExtResource("5_canape")]
 position = Vector2(-40, 90)
+
+[node name="Sam" parent="." instance=ExtResource("10_pnj")]
+position = Vector2(300, 110)
 
 [node name="Portes" type="Node2D" parent="."]
 
