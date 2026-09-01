@@ -37,4 +37,4 @@ func _sur_entree(corps: Node2D) -> void:
 
 
 func _rafraichir() -> void:
-	_etiquette.text = "%s   → %.1f" % [nom_destination, Partie.cout_reel(Partie.COUT_PIECE)]
+	_etiquette.text = "%s   → %.1f" % [nom_destination, Partie.cout_reel(Partie.reglages.cout_piece)]

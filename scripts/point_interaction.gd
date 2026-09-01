@@ -34,7 +34,7 @@ func _executer() -> float:
 
 
 func _deleguer() -> float:
-	var cout := Partie.cout_reel(Partie.COUT_DELEGATION)
+	var cout := Partie.cout_reel(Partie.reglages.cout_delegation)
 	if not Partie.deleguer_tache(tache_def.id):
 		return -1.0
 	return cout
@@ -61,7 +61,7 @@ func rafraichir() -> void:
 	var relance := Partie.relance_de(t.id)
 	if relance != null:
 		_etiquette.text += "\ndéjà chez %s%s" % [
-			Partie.NOM_DELEGATAIRE,
+			Partie.reglages.nom_delegataire,
 			"   —   va le relancer" if relance.due(Partie.jour) else "",
 		]
 	# Le second verbe s'affiche sur la tâche elle-même : c'est en la regardant
@@ -74,8 +74,8 @@ func rafraichir() -> void:
 			# revienne. Séparées, on croit déléguer pour 0,6 une tâche qui en
 			# coûte 1,2 ; sans le « par jour », on croit avoir payé une fois.
 			_etiquette.text += "\nF  déléguer   %.1f puis %.1f/jour" % [
-				Partie.cout_reel(Partie.COUT_DELEGATION),
-				Partie.cout_reel(Partie.COUT_RELANCE),
+				Partie.cout_reel(Partie.reglages.cout_delegation),
+				Partie.cout_reel(Partie.reglages.cout_relance),
 			]
 		else:
 			_etiquette.text += "\nF  déléguer : plus de place"

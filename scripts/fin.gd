@@ -45,7 +45,7 @@ func _ecrire_bilan() -> String:
 			Fil.Etat.LACHE: au_sol.append(fil.nom)
 			Fil.Etat.FERME: regles.append(fil.nom)
 
-	var tenus := mini(Partie.jour - 1, Partie.JOURS_SEMAINE)
+	var tenus := mini(Partie.jour - 1, Partie.reglages.jours_semaine)
 
 	var lignes := PackedStringArray()
 	lignes.append("%d jours tenus." % tenus)

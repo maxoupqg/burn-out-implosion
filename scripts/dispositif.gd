@@ -27,9 +27,10 @@ const COULEUR_BLOQUE := Color(1.0, 0.4, 0.35)
 ## deux (un pense-bête et une vraie automatisation).
 @export var definitif: bool = false
 ## Ce que coûte la mise en place, en unités de temps, avant multiplicateur.
-## Réglable par emplacement : un prélèvement automatique ne se monte pas au
-## même prix qu'un tableau qu'on accroche au mur. Valeur en dur et pas
-## `Partie.COUT_ANCRAGE` : l'autoload n'existe pas dans l'éditeur.
+##
+## Ce prix-là est sur l'emplacement et pas dans `donnees/reglages.tres`, parce
+## qu'il n'y a pas de prix de l'ancrage en général : un prélèvement automatique
+## ne se monte pas au même tarif qu'un tableau qu'on accroche au mur.
 @export var cout_ancrage: float = 4.0
 
 @onready var _panneau: Polygon2D = $Panneau

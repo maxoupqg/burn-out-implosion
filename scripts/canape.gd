@@ -19,7 +19,7 @@ func disponible() -> bool:
 
 
 func _executer() -> float:
-	var cout := Partie.cout_reel(Partie.COUT_ASSIS)
+	var cout := Partie.cout_reel(Partie.reglages.cout_assis)
 	if not Partie.sasseoir():
 		return -1.0
 	return cout
@@ -31,7 +31,7 @@ func rafraichir() -> void:
 		# au salon. Le vert vu ici est une occasion réellement offerte.
 		Partie.signaler_canape_libre()
 		_assise.color = COULEUR_PRET
-		_etiquette.text = "Canapé : s'asseoir   %.1f" % Partie.cout_reel(Partie.COUT_ASSIS)
+		_etiquette.text = "Canapé : s'asseoir   %.1f" % Partie.cout_reel(Partie.reglages.cout_assis)
 		_etiquette.modulate = Color(1, 1, 1)
 		return
 

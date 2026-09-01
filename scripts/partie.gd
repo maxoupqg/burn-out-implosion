@@ -5,50 +5,13 @@ extends Node
 ## Porte les deux ressources (§2), le calendrier de la semaine (§11) et le
 ## calcul de nuit (§7). Le contenu, lui, vit dans `contenu.gd`.
 
-const SLOTS_BASE := 6
-const SLOTS_PLANCHER := 4
-const TEMPS_JOUR := 10.0
-## Le dimanche a un budget plus large : c'est la fenêtre d'ancrage, et on y
-## arrive cramé (§11).
-const TEMPS_DIMANCHE := 14.0
-const JOURS_SEMAINE := 7
 ## Les noms de la semaine. Ici et pas dans le HUD : le jeu dit des dates
-## ailleurs qu'en haut de l'écran — sur un fil à échéance, sur un miroir.
+## ailleurs qu'en haut de l'écran — sur un fil à échéance, sur un miroir. Ce
+## n'est pas un réglage : c'est un calendrier.
 const NOMS_JOURS := [
 	"Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche",
 ]
-## Ancrer coûte cher, et il faut une case libre : les deux ressources
-## s'effondrent au même moment (§5). On s'en sort quand ça va encore bien.
-## Valeur de référence seulement : chaque dispositif porte son propre prix,
-## réglable dans l'inspecteur. Un prélèvement automatique se paie plus cher
-## qu'un tableau des menus — on ne met pas ça en place en cinq minutes.
-const COUT_ANCRAGE := 4.0
-## S'asseoir coûte du temps et ne produit rien. C'est là tout l'intérêt (§11).
-const COUT_ASSIS := 3.0
-## Déléguer ne coûte quasiment rien en temps (§4) : le prix est ailleurs, dans
-## la relance qu'il faudra aller faire et dans la tension qui monte en attendant.
-const COUT_DELEGATION := 0.5
-## Relancer coûte moins que déléguer, et il faut que ça reste vrai : la somme
-## des deux est le seuil au-dessus duquel une tâche vaut la peine d'être passée
-## à quelqu'un. À 0,75, on délègue ce qui coûte cher et on fait soi-même le
-## reste. Pas zéro : sinon on finirait la journée à court de temps en ramassant
-## quand même toutes ses relances gratuitement.
-const COUT_RELANCE := 0.25
-## Il n'y a qu'une autre personne dans le POC. Son nom est ici et pas sur la
-## scène : le bandeau doit pouvoir le dire sans que le salon soit chargé.
-const NOM_DELEGATAIRE := "Sam"
-## On ne court pas derrière quelqu'un dans l'heure. La relance tombe le
-## lendemain — c'est ce décalage qui fait de la délégation un emprunt.
-const DELAI_RELANCE := 1
-## Changer de pièce (§9). Petit, mais payé au tarif du jour : c'est ce qui rend
-## la dispersion chère sans jamais l'interdire.
-const COUT_PIECE := 0.5
-## Vider sa tête (§5) : la soupape. Deux nuits de répit, pas une de plus — assez
-## pour dégager la place et ancrer autre chose, trop peu pour en faire une
-## habitude. Le fil revient à cette date qu'on ait fait de la place ou non.
-const DELAI_RETOUR := 2
-## Trois fils au sol en même temps : on ne sait même plus ce qu'on a lâché.
-const FILS_AU_SOL_FATAL := 3
+const CHEMIN_REGLAGES := "res://donnees/reglages.tres"
 
 signal temps_change(restant: float)
 signal fils_change()
@@ -69,9 +32,16 @@ signal fil_revient(fil: Fil)
 ## La run est terminée. `raison` vaut "effondrement" ou "semaine".
 signal partie_finie(raison: String)
 
+## Tous les prix et tous les délais, éditables dans l'inspecteur (§2). Le reste
+## de ce fichier ne contient plus un seul chiffre d'équilibrage : régler une
+## semaine se fait dans `donnees/reglages.tres`, sans ouvrir un script.
+var reglages: Reglages
+
 var jour: int = 1
-var temps_restant: float = TEMPS_JOUR
-var slots: int = SLOTS_BASE
+## Ces deux-là valent zéro tant que les réglages ne sont pas chargés :
+## `reinitialiser()` leur donne leur vraie valeur dès `_ready`.
+var temps_restant: float = 0.0
+var slots: int = 0
 ## Nombre de fois où l'on a réussi à ne rien faire. C'est le score.
 var fois_assis: int = 0
 ## Journées où le canapé était libre et où l'on est reparti quand même.
@@ -93,6 +63,13 @@ var relances: Array[Relance] = []
 
 
 func _ready() -> void:
+	# Avant tout le reste : sans réglages, il n'y a pas de premier jour. Un
+	# fichier absent ou cassé ne doit pas empêcher de jouer — on repart sur les
+	# valeurs écrites dans le script, et on le dit.
+	reglages = ResourceLoader.load(CHEMIN_REGLAGES) as Reglages
+	if reglages == null:
+		push_warning("Réglages introuvables (%s) : valeurs par défaut." % CHEMIN_REGLAGES)
+		reglages = Reglages.new()
 	reinitialiser()
 
 
@@ -101,7 +78,7 @@ func _ready() -> void:
 func reinitialiser() -> void:
 	jour = 1
 	temps_restant = temps_du_jour(jour)
-	slots = SLOTS_BASE
+	slots = reglages.slots_base
 	fois_assis = 0
 	jours_refuses = 0
 	finie = false
@@ -124,7 +101,7 @@ func nom_jour(j: int) -> String:
 
 
 func temps_du_jour(j: int) -> float:
-	return TEMPS_DIMANCHE if j >= JOURS_SEMAINE else TEMPS_JOUR
+	return reglages.temps_dimanche if j >= reglages.jours_semaine else reglages.temps_jour
 
 
 func fils_ouverts() -> Array[Fil]:
@@ -247,18 +224,10 @@ func fil_neglige(fil: Fil) -> bool:
 
 
 ## Multiplicateur de charge (§2). Le couplage à sens unique : les cases
-## pourrissent le temps, le temps n'achète jamais de cases.
+## pourrissent le temps, le temps n'achète jamais de cases. Le barème est dans
+## les réglages.
 func multiplicateur() -> float:
-	var n := cases_occupees()
-	if n <= 1:
-		return 1.0
-	if n <= 3:
-		return 1.2
-	if n == 4:
-		return 1.4
-	if n == 5:
-		return 1.6
-	return 1.8
+	return reglages.multiplicateur(cases_occupees())
 
 
 func cout_reel(cout_base: float) -> float:
@@ -333,14 +302,14 @@ func peut_deleguer(tache: Tache) -> bool:
 		return false
 	if cases_libres() <= 0:
 		return false
-	return cout_reel(COUT_DELEGATION) <= temps_restant
+	return cout_reel(reglages.cout_delegation) <= temps_restant
 
 
 func deleguer_tache(tache_id: String) -> bool:
 	var tache: Tache = taches.get(tache_id)
 	if not peut_deleguer(tache):
 		return false
-	if not depenser_temps(COUT_DELEGATION):
+	if not depenser_temps(reglages.cout_delegation):
 		return false
 
 	_confier(tache)
@@ -360,21 +329,21 @@ func _confier(tache: Tache) -> void:
 	_resoudre(tache)
 	var relance := Relance.new()
 	relance.tache = tache
-	relance.due_le = jour + DELAI_RELANCE
+	relance.due_le = jour + reglages.delai_relance
 	relances.append(relance)
 
 
 ## Relancer : aller réclamer ce qu'on a délégué. On règle la plus vieille —
 ## c'est celle qui pourrit le plus longtemps un fil.
 func peut_relancer() -> bool:
-	return not relances_dues().is_empty() and cout_reel(COUT_RELANCE) <= temps_restant
+	return not relances_dues().is_empty() and cout_reel(reglages.cout_relance) <= temps_restant
 
 
 func relancer() -> bool:
 	if not peut_relancer():
 		return false
 	var relance := relances_dues()[0]
-	if not depenser_temps(COUT_RELANCE):
+	if not depenser_temps(reglages.cout_relance):
 		return false
 
 	relances.erase(relance)
@@ -424,7 +393,7 @@ func _verifier_cloture(fil_id: String) -> void:
 ## baisser le coût des tâches d'un fil ancré, ce qui brouillait Ancrer et
 ## Déléguer. Ici il n'y a plus de tâches du tout. C'est tout ou rien, et le
 ## joueur voit lequel des deux il achète avant de payer.
-func peut_ancrer(fil_id: String, cout: float = COUT_ANCRAGE) -> bool:
+func peut_ancrer(fil_id: String, cout: float) -> bool:
 	var fil: Fil = fils.get(fil_id)
 	if fil == null or fil.etat != Fil.Etat.OUVERT or not fil.ancrable:
 		return false
@@ -434,7 +403,7 @@ func peut_ancrer(fil_id: String, cout: float = COUT_ANCRAGE) -> bool:
 	return cout_reel(cout) <= temps_restant
 
 
-func ancrer_fil(fil_id: String, cout: float = COUT_ANCRAGE, definitif: bool = false) -> bool:
+func ancrer_fil(fil_id: String, cout: float, definitif: bool = false) -> bool:
 	if not peut_ancrer(fil_id, cout):
 		return false
 
@@ -481,13 +450,13 @@ func ouvrir_fil(fil: Fil) -> bool:
 ## ferme rien, et il faut une case vide dans la tête — pas juste du temps libre.
 ## C'est la seule chose que le jeu appelle une victoire.
 func peut_sasseoir() -> bool:
-	return cases_libres() > 0 and cout_reel(COUT_ASSIS) <= temps_restant
+	return cases_libres() > 0 and cout_reel(reglages.cout_assis) <= temps_restant
 
 
 func sasseoir() -> bool:
 	if not peut_sasseoir():
 		return false
-	if not depenser_temps(COUT_ASSIS):
+	if not depenser_temps(reglages.cout_assis):
 		return false
 	fois_assis += 1
 	_assis_aujourdhui = true
@@ -507,7 +476,7 @@ func signaler_canape_libre() -> void:
 func changer_de_piece() -> void:
 	if temps_restant <= 0.0:
 		return
-	temps_restant = maxf(temps_restant - cout_reel(COUT_PIECE), 0.0)
+	temps_restant = maxf(temps_restant - cout_reel(reglages.cout_piece), 0.0)
 	temps_change.emit(temps_restant)
 
 
@@ -561,7 +530,7 @@ func vider_tete() -> bool:
 		return false
 
 	fil.etat = Fil.Etat.ECARTE
-	fil.jour_retour = jour + DELAI_RETOUR
+	fil.jour_retour = jour + reglages.delai_retour
 	fil_ecarte.emit(fil)
 	fils_change.emit()
 	# Ses tâches quittent le monde avec lui : on ne peut pas travailler sur
@@ -643,11 +612,11 @@ func coucher() -> void:
 	#    n'apporte ses propres fils.
 	var portees := cases_occupees()
 	var delta := 0
-	if portees <= 2:
+	if portees <= reglages.seuil_nuit_calme:
 		delta = 1
-	elif portees >= 5:
+	elif portees >= reglages.seuil_nuit_charge:
 		delta = -1
-	slots = clampi(slots + delta, SLOTS_PLANCHER, SLOTS_BASE)
+	slots = clampi(slots + delta, reglages.slots_plancher, reglages.slots_base)
 
 	jour += 1
 
@@ -700,9 +669,9 @@ func coucher() -> void:
 
 	# 8. Les deux façons dont ça s'arrête. L'effondrement passe devant : si on
 	#    s'écroule le dimanche soir, on s'est quand même écroulé.
-	if fils_au_sol().size() >= FILS_AU_SOL_FATAL:
+	if fils_au_sol().size() >= reglages.fils_au_sol_fatal:
 		finie = true
 		partie_finie.emit("effondrement")
-	elif jour > JOURS_SEMAINE:
+	elif jour > reglages.jours_semaine:
 		finie = true
 		partie_finie.emit("semaine")

@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="Reglages" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/reglages.gd" id="1_reglages"]
+
+[resource]
+script = ExtResource("1_reglages")
+temps_jour = 10.0
+temps_dimanche = 14.0
+jours_semaine = 7
+slots_base = 6
+slots_plancher = 4
+seuil_nuit_calme = 2
+seuil_nuit_charge = 5
+paliers_multiplicateur = PackedFloat32Array(1, 1, 1.2, 1.2, 1.4, 1.6, 1.8)
+cout_assis = 3.0
+cout_piece = 0.5
+cout_delegation = 0.5
+cout_relance = 0.25
+delai_relance = 1
+delai_retour = 2
+fils_au_sol_fatal = 3
+nom_delegataire = "Sam"

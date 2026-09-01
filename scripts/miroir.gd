@@ -49,5 +49,5 @@ func rafraichir() -> void:
 	# La date de retour reste collée dessous : sans elle, on croit à un bouton
 	# « supprimer » et on découvre la facture deux jours plus tard.
 	_etiquette.text = "« j'm'en bats les couilles de %s »\nça revient %s, et en pire" % [
-		fil.nom, Partie.nom_jour(Partie.jour + Partie.DELAI_RETOUR)
+		fil.nom, Partie.nom_jour(Partie.jour + Partie.reglages.delai_retour)
 	]

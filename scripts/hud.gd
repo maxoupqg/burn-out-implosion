@@ -199,7 +199,7 @@ func _case_relance(relance: Relance) -> ColorRect:
 	# pas vérifié, et celui d'aujourd'hui qui attend — et on croit à un doublon.
 	nom.text = "%s %s\n%s" % [
 		"relancer" if relance.due(Partie.jour) else "délégué à",
-		Partie.NOM_DELEGATAIRE,
+		Partie.reglages.nom_delegataire,
 		relance.tache.nom,
 	]
 	case.add_child(nom)

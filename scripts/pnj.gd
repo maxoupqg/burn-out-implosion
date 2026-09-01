@@ -22,7 +22,7 @@ func disponible() -> bool:
 
 
 func _executer() -> float:
-	var cout := Partie.cout_reel(Partie.COUT_RELANCE)
+	var cout := Partie.cout_reel(Partie.reglages.cout_relance)
 	if not Partie.relancer():
 		return -1.0
 	return cout
@@ -39,12 +39,12 @@ func rafraichir() -> void:
 		# On dit qu'il reste quelque chose en l'air, sans dire quoi : c'est
 		# encore chez lui, ça ne pèse pas encore.
 		if en_cours > 0:
-			_etiquette.text = "%s\nil s'en occupe" % Partie.NOM_DELEGATAIRE
+			_etiquette.text = "%s\nil s'en occupe" % Partie.reglages.nom_delegataire
 		else:
-			_etiquette.text = Partie.NOM_DELEGATAIRE
+			_etiquette.text = Partie.reglages.nom_delegataire
 		return
 
-	var cout := Partie.cout_reel(Partie.COUT_RELANCE)
+	var cout := Partie.cout_reel(Partie.reglages.cout_relance)
 	_pastille.visible = true
 	_corps.color = COULEUR_ATTENDU
 	# Nommer ce qu'on vient réclamer : sinon relancer devient un bouton, et la
@@ -52,7 +52,7 @@ func rafraichir() -> void:
 	# quand il y a de quoi refaire, en sortir quand il n'y a plus rien. Sans ça
 	# on ne comprend jamais comment l'arrangement s'arrête.
 	_etiquette.text = "%s : relancer   %.1f\n%s — %s" % [
-		Partie.NOM_DELEGATAIRE,
+		Partie.reglages.nom_delegataire,
 		cout,
 		dues[0].tache.nom,
 		"qu'il le refasse" if Partie.tache_active(dues[0].tache) else "c'est fini, la case se libère",
