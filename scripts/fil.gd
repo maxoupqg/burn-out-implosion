@@ -15,6 +15,7 @@ enum Etat {
 	ANCRE,      ## Dans le monde, accroché à un dispositif. Occupe zéro case.
 	LACHE,      ## Tombé par terre. Plus dans la tête, plus affiché nulle part.
 	FERME,      ## Réglé. Ne revient pas. Réservé aux fils temporaires.
+	ECARTE,     ## Mis de côté volontairement (§5). Revient de force, et pire.
 }
 
 ## Tension à partir de laquelle le fil prend une case supplémentaire.
@@ -31,6 +32,9 @@ var etat: Etat = Etat.OUVERT
 var tension: int = 0
 ## Nuits passées au sol. Un fil oublié trop longtemps devient irrattrapable.
 var jours_au_sol: int = 0
+## Jour où un fil écarté revient dans la tête, qu'on ait fait de la place ou
+## non. Sans date de retour, vider sa tête serait un bouton « supprimer ».
+var jour_retour: int = 0
 ## Pièce où il est tombé (§6). Vide tant qu'il n'est pas par terre. Le jeu ne
 ## l'affiche jamais : c'est au joueur de se rappeler où il a lâché quoi.
 var piece_id: String = ""

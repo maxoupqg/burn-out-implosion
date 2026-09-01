@@ -12,8 +12,16 @@ const TEMPS_JOUR := 10.0
 ## arrive cramé (§11).
 const TEMPS_DIMANCHE := 14.0
 const JOURS_SEMAINE := 7
+## Les noms de la semaine. Ici et pas dans le HUD : le jeu dit des dates
+## ailleurs qu'en haut de l'écran — sur un fil à échéance, sur un miroir.
+const NOMS_JOURS := [
+	"Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche",
+]
 ## Ancrer coûte cher, et il faut une case libre : les deux ressources
 ## s'effondrent au même moment (§5). On s'en sort quand ça va encore bien.
+## Valeur de référence seulement : chaque dispositif porte son propre prix,
+## réglable dans l'inspecteur. Un prélèvement automatique se paie plus cher
+## qu'un tableau des menus — on ne met pas ça en place en cinq minutes.
 const COUT_ANCRAGE := 4.0
 ## S'asseoir coûte du temps et ne produit rien. C'est là tout l'intérêt (§11).
 const COUT_ASSIS := 3.0
@@ -35,6 +43,10 @@ const DELAI_RELANCE := 1
 ## Changer de pièce (§9). Petit, mais payé au tarif du jour : c'est ce qui rend
 ## la dispersion chère sans jamais l'interdire.
 const COUT_PIECE := 0.5
+## Vider sa tête (§5) : la soupape. Deux nuits de répit, pas une de plus — assez
+## pour dégager la place et ancrer autre chose, trop peu pour en faire une
+## habitude. Le fil revient à cette date qu'on ait fait de la place ou non.
+const DELAI_RETOUR := 2
 ## Trois fils au sol en même temps : on ne sait même plus ce qu'on a lâché.
 const FILS_AU_SOL_FATAL := 3
 
@@ -50,6 +62,10 @@ signal fil_decroche(fil: Fil)
 signal fil_arrive(fil: Fil)
 ## Un fil temporaire est réglé pour de bon.
 signal fil_ferme(fil: Fil)
+## On a décidé de ne plus y penser (§5).
+signal fil_ecarte(fil: Fil)
+## Et ça revient quand même.
+signal fil_revient(fil: Fil)
 ## La run est terminée. `raison` vaut "effondrement" ou "semaine".
 signal partie_finie(raison: String)
 
@@ -103,6 +119,10 @@ func reinitialiser() -> void:
 
 # --- Lecture -----------------------------------------------------------------
 
+func nom_jour(j: int) -> String:
+	return NOMS_JOURS[(j - 1) % NOMS_JOURS.size()]
+
+
 func temps_du_jour(j: int) -> float:
 	return TEMPS_DIMANCHE if j >= JOURS_SEMAINE else TEMPS_JOUR
 
@@ -113,6 +133,14 @@ func fils_ouverts() -> Array[Fil]:
 		if fil.etat == Fil.Etat.OUVERT:
 			ouverts.append(fil)
 	return ouverts
+
+
+func fils_ecartes() -> Array[Fil]:
+	var ecartes: Array[Fil] = []
+	for fil: Fil in fils.values():
+		if fil.etat == Fil.Etat.ECARTE:
+			ecartes.append(fil)
+	return ecartes
 
 
 func fils_au_sol() -> Array[Fil]:
@@ -486,6 +514,45 @@ func ramasser_fil(fil_id: String) -> bool:
 	return true
 
 
+## Vider sa tête (§5) : la soupape. Ancrer demande du temps *et* une case libre,
+## donc les deux ressources manquent au même moment et le joueur en difficulté
+## ne peut plus rien faire. Ceci lui rend une case tout de suite pour qu'il
+## puisse ancrer — en creusant à côté.
+##
+## Gratuit en temps, et il faut que ça le reste : une soupape qui demande du
+## temps est fermée exactement quand on en a besoin. Le prix est différé, et il
+## est lourd (voir `coucher`).
+##
+## On n'écarte pas un fil ancré : il ne prend déjà aucune case, il n'y a rien à
+## gagner. Et on n'écarte pas ce qu'on choisit — on écarte ce qui pèse le plus.
+## C'est plus vrai, et ça évite un menu de sélection que le POC refuse (§13).
+func fil_a_ecarter() -> Fil:
+	var pire: Fil = null
+	for fil in fils_ouverts():
+		if pire == null or fil.tension > pire.tension:
+			pire = fil
+	return pire
+
+
+func peut_vider_tete() -> bool:
+	return fil_a_ecarter() != null
+
+
+func vider_tete() -> bool:
+	var fil := fil_a_ecarter()
+	if fil == null:
+		return false
+
+	fil.etat = Fil.Etat.ECARTE
+	fil.jour_retour = jour + DELAI_RETOUR
+	fil_ecarte.emit(fil)
+	fils_change.emit()
+	# Ses tâches quittent le monde avec lui : on ne peut pas travailler sur
+	# quelque chose auquel on a décidé de ne plus penser.
+	taches_change.emit()
+	return true
+
+
 # --- Fin de journée ----------------------------------------------------------
 
 ## Fin de journée (§7). La nuit n'est pas une scène, c'est ce calcul :
@@ -508,7 +575,15 @@ func coucher() -> void:
 
 	# 1. Ce qu'on a laissé traîner enfle. Faire une tâche ne fait pas avancer :
 	#    ça empêche juste son fil de grossir — ou son dispositif de lâcher.
+	#
+	#    Un fil écarté enfle aussi, et sans recours : ses tâches ne sont nulle
+	#    part, donc rien ne peut le calmer. C'est ce qui empêche « vider sa
+	#    tête » d'être un snooze — ne plus y penser ne le fait pas disparaître,
+	#    ça le fait grossir.
 	for fil: Fil in fils.values():
+		if fil.etat == Fil.Etat.ECARTE:
+			fil.tension = mini(fil.tension + fil.tension_par_nuit, Fil.TENSION_SEUIL)
+			continue
 		if not fil.actif():
 			continue
 		if fil_neglige(fil):
@@ -527,10 +602,17 @@ func coucher() -> void:
 	#    Un fil encore ancré y échappe — c'est à ça que sert un prélèvement
 	#    automatique. Mais si son dispositif vient de lâcher (étape 2), on
 	#    découvre le soir même que rien n'a été payé.
+	#
+	#    Un fil écarté ne s'y soustrait pas non plus, et surtout pas lui : ne
+	#    pas y penser le jour où ça devait être fait, c'est exactement comme ça
+	#    qu'on rate une échéance. Sinon la soupape deviendrait le moyen le moins
+	#    cher de traverser une date butoir.
 	for fil: Fil in fils.values():
-		if fil.jour_echeance != jour or fil.etat != Fil.Etat.OUVERT:
+		if fil.jour_echeance != jour:
 			continue
-		if fil_neglige(fil):
+		if fil.etat == Fil.Etat.ECARTE:
+			_lacher(fil)
+		elif fil.etat == Fil.Etat.OUVERT and fil_neglige(fil):
 			_lacher(fil)
 
 	# 4. Un fil oublié au sol ne s'améliore pas.
@@ -568,15 +650,30 @@ func coucher() -> void:
 		relances.erase(attentes[0])
 
 	# 7. Ce que la journée apporte. Un fil peut déborder dès son arrivée.
+	#
+	#    Ce qu'on a écarté revient par la même porte, et c'est voulu : ça se
+	#    réinsère de force, avant les nouveaux fils, sans demander s'il y a de la
+	#    place. S'il n'y en a pas, ça tombe. Le joueur qui a vidé sa tête pour
+	#    repousser au lieu d'ancrer perd le fil pour de bon.
 	var arrivants: Array[Fil] = []
+	for fil: Fil in fils.values():
+		if fil.etat == Fil.Etat.ECARTE and fil.jour_retour <= jour:
+			arrivants.append(fil)
 	for fil: Fil in fils.values():
 		if fil.etat == Fil.Etat.ENATTENTE and fil.jour_arrivee <= jour:
 			arrivants.append(fil)
 	for fil in arrivants:
+		var revient := fil.etat == Fil.Etat.ECARTE
 		# S'il déborde à l'arrivée, `ouvrir_fil` l'a déjà annoncé comme tombé.
 		# L'annoncer aussi comme arrivé donnerait à lire deux événements.
 		if ouvrir_fil(fil):
-			fil_arrive.emit(fil)
+			# Un retour se dit autrement qu'une arrivée : le joueur doit
+			# reconnaître ce qu'il a mis de côté, sinon il croit à un fil neuf
+			# et n'apprend jamais ce que la soupape lui a coûté.
+			if revient:
+				fil_revient.emit(fil)
+			else:
+				fil_arrive.emit(fil)
 
 	temps_restant = temps_du_jour(jour)
 	jour_change.emit(jour)

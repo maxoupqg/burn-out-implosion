@@ -7,9 +7,6 @@ const LARGEUR_CASE := 130.0
 const HAUTEUR_CASE := 34.0
 const ESPACEMENT := 8.0
 
-const JOURS := [
-	"Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche",
-]
 ## Au-delà, on n'annonce pas : c'est encore trop loin pour peser.
 const HORIZON_METEO := 3
 ## Un événement est dit une fois, puis plus jamais. C'est le principe du §6 :
@@ -24,6 +21,10 @@ const COULEUR_TENSION := Color(0.55, 0.12, 0.12)
 ## une place prise. Elle a sa propre couleur pour qu'on ne la confonde pas.
 const COULEUR_DELEGUE := Color(0.62, 0.66, 0.78)
 const COULEUR_A_RELANCER := Color(0.78, 0.72, 0.5)
+## Un fil écarté : presque noir, à peine plus clair que le fond. Il ne pèse
+## rien — pour l'instant — et il ne doit pas se lire comme une charge.
+const COULEUR_ECARTE := Color(0.16, 0.13, 0.15)
+const COULEUR_TEXTE_ECARTE := Color(0.62, 0.58, 0.6)
 const COULEUR_TEXTE_FIL := Color(0.1, 0.09, 0.11)
 const COULEUR_CALME := Color(0.75, 0.78, 0.8)
 const COULEUR_CRAME := Color(1.0, 0.35, 0.28)
@@ -55,6 +56,8 @@ func _ready() -> void:
 	Partie.fil_ferme.connect(func(fil: Fil) -> void: _flasher("%s : réglé." % fil.nom))
 	Partie.fil_deborde.connect(func(fil: Fil) -> void: _flasher("%s t'est tombé des mains." % fil.nom))
 	Partie.fil_decroche.connect(func(fil: Fil) -> void: _flasher("%s : le dispositif a lâché." % fil.nom))
+	Partie.fil_ecarte.connect(func(fil: Fil) -> void: _flasher("%s : tu t'en bats les couilles." % fil.nom))
+	Partie.fil_revient.connect(func(fil: Fil) -> void: _flasher("%s : ça t'est revenu." % fil.nom))
 
 	_maj_temps(Partie.temps_restant)
 	_maj_jour(Partie.jour)
@@ -107,6 +110,14 @@ func _maj_tete() -> void:
 		vide.color = COULEUR_VIDE
 		_slots.add_child(vide)
 
+	# Ce qu'on a écarté vient après les cases vides, hors de la tête : il ne
+	# prend aucune place, et il faut que ça se voie — c'est exactement ce qu'on
+	# a acheté. Mais il reste là, à côté, en train de compter. Sans cette case,
+	# un fil écarté est indiscernable d'un fil ancré : les deux disparaissent du
+	# bandeau, alors qu'ils font l'inverse l'un de l'autre.
+	for fil in Partie.fils_ecartes():
+		_slots.add_child(_case_ecartee(fil))
+
 	var m := Partie.multiplicateur()
 	_mult.text = "× %.1f" % m
 	# Le multiplicateur doit être lisible en jouant, pas seulement après coup.
@@ -147,7 +158,7 @@ func _case_fil(fil: Fil) -> ColorRect:
 	nom.text = fil.nom
 
 	if fil.jour_echeance > 0:
-		nom.text += "\navant %s" % _nom_jour(fil.jour_echeance)
+		nom.text += "\navant %s" % Partie.nom_jour(fil.jour_echeance)
 		nom.add_theme_font_size_override("font_size", 12)
 
 	case.add_child(nom)
@@ -196,6 +207,43 @@ func _case_relance(relance: Relance) -> ColorRect:
 	return case
 
 
+## Un fil écarté. Sombre, en retrait, et il grossit en silence : il porte déjà
+## la taille qu'il aura en revenant, pour qu'on voie arriver ce qu'on a acheté.
+func _case_ecartee(fil: Fil) -> ColorRect:
+	var case := ColorRect.new()
+	var taille := fil.taille()
+	case.custom_minimum_size = Vector2(
+		LARGEUR_CASE * taille + ESPACEMENT * (taille - 1), HAUTEUR_CASE
+	)
+	case.color = COULEUR_ECARTE
+
+	var nom := Label.new()
+	nom.anchor_right = 1.0
+	nom.anchor_bottom = 1.0
+	nom.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	nom.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	nom.add_theme_font_size_override("font_size", 12)
+	nom.add_theme_color_override("font_color", COULEUR_TEXTE_ECARTE)
+	var avant := fil.jour_retour - Partie.jour
+	nom.text = "%s\n%s" % [
+		fil.nom, "revient demain" if avant <= 1 else "revient dans %d j" % avant
+	]
+	case.add_child(nom)
+
+	# La même jauge que sur un fil ouvert, au même endroit : c'est la seule
+	# façon de comprendre qu'il enfle pendant qu'on ne le regarde pas.
+	if fil.tension > 0:
+		var jauge := ColorRect.new()
+		jauge.color = COULEUR_TENSION
+		jauge.anchor_top = 1.0
+		jauge.anchor_bottom = 1.0
+		jauge.anchor_right = clampf(float(fil.tension) / float(Fil.TENSION_SEUIL), 0.0, 1.0)
+		jauge.offset_top = -5.0
+		case.add_child(jauge)
+
+	return case
+
+
 ## Ce qui arrive et qu'on peut encore anticiper. L'imprévu n'y figure jamais —
 ## c'est précisément ce qui en fait un imprévu.
 func _maj_meteo() -> void:
@@ -217,6 +265,9 @@ func _maj_meteo() -> void:
 			fil.nom, "arrive demain" if dans <= 1 else "arrive dans %d jours" % dans
 		])
 
+	# Ce qu'on a écarté ne s'annonce pas ici : sa case le dit déjà, en
+	# permanence et mieux — avec sa taille de retour et sa jauge qui monte.
+
 	for fil: Fil in Partie.fils.values():
 		if fil.jour_echeance <= 0 or not fil.actif():
 			continue
@@ -231,13 +282,9 @@ func _maj_meteo() -> void:
 	_meteo.modulate = COULEUR_ECHEANCE if annonces.size() > 1 else Color(1, 1, 1)
 
 
-func _nom_jour(j: int) -> String:
-	return JOURS[(j - 1) % JOURS.size()]
-
-
 func _maj_temps(restant: float) -> void:
 	_temps.text = "Temps  %.1f / %.0f" % [restant, Partie.temps_du_jour(Partie.jour)]
 
 
 func _maj_jour(jour: int) -> void:
-	_jour.text = _nom_jour(jour)
+	_jour.text = Partie.nom_jour(jour)

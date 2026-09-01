@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://scripts/piece.gd" id="1_piece"]
 [ext_resource type="PackedScene" path="res://scenes/point_interaction.tscn" id="2_point"]
@@ -8,6 +8,7 @@
 [ext_resource type="Resource" path="res://donnees/taches/machine.tres" id="6_machine"]
 [ext_resource type="Resource" path="res://donnees/taches/etendre.tres" id="7_etendre"]
 [ext_resource type="Resource" path="res://donnees/fils/linge.tres" id="8_linge"]
+[ext_resource type="PackedScene" path="res://scenes/miroir.tscn" id="9_miroir"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_h"]
 size = Vector2(1040, 20)
@@ -80,6 +81,9 @@ nom_meuble = "Étendoir"
 position = Vector2(-90, 120)
 fil_def = ExtResource("8_linge")
 nom_dispositif = "Planning du linge"
+
+[node name="Miroir" parent="." instance=ExtResource("9_miroir")]
+position = Vector2(330, 120)
 
 [node name="Portes" type="Node2D" parent="."]
 
