@@ -129,6 +129,21 @@ Déléguer achète du temps avec de la charge ; ancrer achète de la charge avec
 
 **Refusé — l'ancrage ne doit pas alléger le travail.** Ni remise de temps sur les tâches du fil ancré, ni récurrence allongée. Deux raisons : ça contredit la seule phrase que le jeu affirme (*« Ancrer ne supprime pas le travail, ça supprime la charge »*), et ça fait empiéter Ancrer sur la niche de Déléguer — qui deviendrait alors une version pauvre et temporaire du même effet, donc morte.
 
+### Deux sortes de dispositifs
+
+Décidé à l'implémentation. Un prélèvement automatique **paie vraiment la facture** : une fois en place, il n'y a plus de courrier à ouvrir ni de virement à faire. Un tableau des menus, lui, **ne cuisine pas** — il rappelle, et il s'use si on ne le nourrit pas. On les traitait pareil ; c'est faux.
+
+- **Ancrage d'entretien** (défaut) : le fil passe en `ANCRE`, rend sa case, ses tâches restent dans le monde, sa tension devient l'usure du dispositif. Si on néglige, ça décroche.
+- **Ancrage définitif** : le fil est `FERME`. Il rend sa case, ses tâches quittent le monde, son échéance ne s'applique plus, et il ne revient pas. C'est le seul endroit du jeu où quelque chose est vraiment fini.
+
+**Ce n'est pas le retour de l'allègement refusé ci-dessus.** Ce qu'on refusait, c'était de faire *baisser le coût* des tâches d'un fil ancré : ça brouillait Ancrer et Déléguer et ça contredisait la phrase du jeu. Ici il n'y a plus de tâches du tout — c'est tout ou rien, et le dispositif annonce lequel des deux il est avant qu'on paie (`tu n'y touches plus` / `à entretenir`).
+
+**Le définitif se paie plus cher**, sinon aucun autre ancrage ne vaudrait la peine. Le prix est réglable par emplacement dans l'inspecteur, pas en dur dans le code. Départ : 6,0 contre 4,0.
+
+Le seul dispositif définitif du POC est le prélèvement automatique. Le fil des factures arrive jeudi avec une échéance samedi : trois jours pour réunir 6,0 de temps **et** une case libre, ou il tombe. C'est exactement la fenêtre que le §5 décrit — on s'en sort quand ça va encore bien.
+
+**À trancher :** faut-il d'autres dispositifs définitifs ? Un seul sur quatre en fait un moment rare et mémorable ; deux en feraient une stratégie.
+
 La récompense de l'ancrage existe déjà et elle est globale : une case rendue en permanence, donc un multiplicateur plus bas, donc **toutes** les actions du jeu raccourcies, y compris les tâches du fil ancré. On a acheté un actif ; les tâches qui restent sont son entretien. Si l'ancrage ne se *sent* pas assez, c'est un problème de retour sensoriel (§10), pas de mécanique.
 
 ### La relance vit sur quelqu'un
@@ -190,6 +205,24 @@ Deux soupapes empêchent le softlock :
 2. **Vider sa tête** — libère une case maintenant contre un retour du fil sous deux jours. Permet de se dégager la place pour ancrer, en creusant à côté.
 
 **Vider sa tête n'est pas un snooze.** Au retour, le fil se réinsère de force : s'il n'y a pas de place, il tombe (§6). Le joueur qui s'en sert pour repousser au lieu d'ancrer perd le fil pour de bon.
+
+### Vider sa tête — décidé à l'implémentation
+
+**Le miroir de la salle de bain.** Pas le lit : il n'y a pas de chambre, et le lit servirait de toute façon à finir la journée. La salle de bain est la pièce où l'on va le moins, donc décider de ne plus penser à quelque chose demande de s'être déplacé pour ça — même principe que Sam, le prix est dans le trajet.
+
+**Gratuit en temps, et ça doit le rester.** C'est le seul verbe gratuit du jeu. Une soupape qui coûte du temps est fermée exactement le jour où l'on en a besoin — c'est le défaut qu'on a déjà corrigé une fois sur Déléguer. Le prix est différé : il tombe dans deux nuits et ne se négocie pas.
+
+**On ne choisit pas ce qu'on écarte : le miroir prend le fil le plus tendu.** Plus vrai qu'un menu — on ne lâche pas ce qu'on décide, on lâche ce qui pèse — et ça évite un sélecteur que le POC refuse (§13). Le miroir nomme le fil et la date de retour avant qu'on appuie : le joueur voit ce qu'il va lâcher et peut repartir.
+
+**Le fil enfle pendant qu'il est écarté**, et sans recours : ses tâches ne sont nulle part, donc rien ne peut le calmer. Il revient donc à deux cases, et souvent il tombe en revenant. C'est ce qui empêche le verbe d'être un snooze : *ne plus y penser ne le fait pas disparaître, ça le fait grossir*.
+
+**Une échéance ne s'écarte pas.** Un fil à date butoir écarté tombe le jour dit, comme s'il était resté ouvert. Sinon vider sa tête serait le moyen le moins cher de traverser une échéance — alors que ne pas y penser ce jour-là est très précisément la façon dont on la rate.
+
+**Un fil écarté garde une case dans le bandeau**, après les cases vides, presque noire : il ne pèse rien — pour l'instant — mais il est là, il compte à rebours, et il porte déjà la taille qu'il aura en revenant, jauge de tension comprise. Sans cette case, un fil écarté est indiscernable d'un fil ancré : les deux disparaissent du bandeau, alors qu'ils font l'inverse l'un de l'autre. C'était la première chose qu'on ne comprenait pas en jouant.
+
+**Le miroir parle à la première personne, et dans les mots où on se le dit vraiment :** *« j'm'en bats les couilles de X »*. « Vider sa tête » sonne comme du repos ; c'est le geste le plus violent du jeu, et le seul qu'on s'adresse à soi-même dans une glace.
+
+Chiffre de départ, **non validé** : retour à 2 jours.
 
 ---
 
@@ -438,12 +471,17 @@ La ligne qui compte est celle du fil lâché. Le §6 l'a effacé du bandeau : le
 
 ### Condition d'entrée
 
-Ne pas commencer avant que **le jour tienne seul**. Le POC actuel ne prouve rien contre lui : il tourne avec 2 verbes sur 6 et un contenu volontairement réduit (§13).
+Ne pas commencer avant que **le jour tienne seul**.
 
-À faire d'abord, dans l'ordre :
+1. ~~**Déléguer** (§4) — l'axe symétrique d'Ancrer, la seconde vraie décision du jeu.~~ Fait, deux playtests, deux refontes du coût.
+2. ~~**Vider sa tête** (§5) — la soupape.~~ Fait.
+3. ~~Une semaine rejouée avec les six verbes.~~ **Fait. Le jour tient.**
 
-1. **Déléguer** (§4) — l'axe symétrique d'Ancrer, la seconde vraie décision du jeu, non implémentée.
-2. **Vider sa tête** (§5) — la soupape, non implémentée.
-3. Une semaine rejouée avec les six verbes.
+**La condition est remplie.** Semaine bouclée, 7 jours tenus, deux assises, canapé refusé cinq jours sur sept. Les courses tenues par dispositif, les factures réglées par prélèvement automatique, l'imprévu géré jusqu'au bout. Et surtout : **les six verbes ont tous servi, et il a fallu les six.** Aucun n'est mort, aucun n'est dominant.
 
-Si le jour tient 40 minutes avec ça, la nuit devient un projet à part entière. S'il ne les tient pas, aucun donjon ne l'aurait sauvé — il aurait juste caché le problème sous du contenu.
+Deux choses que cette run confirme et qu'il ne faut pas casser en touchant à autre chose :
+
+- **Le renoncement reste dominant.** Cinq refus contre deux assises. Le §11 tablait sur l'impossibilité de se reposer ; c'est le renoncement calculé qui produit la sensation, et il survit à l'arrivée des quatre nouveaux verbes. C'était le risque principal — donner plus d'outils au joueur aurait pu rendre le repos facile. Ça ne l'a pas fait.
+- **Trois fils sur cinq neutralisés, et le joueur ne s'est quand même assis que deux fois.** Le jeu ne se gagne pas en supprimant des fils : ça libère juste assez de place pour continuer.
+
+La nuit jouable devient donc un projet à part entière.
