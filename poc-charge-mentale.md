@@ -131,6 +131,46 @@ Déléguer achète du temps avec de la charge ; ancrer achète de la charge avec
 
 La récompense de l'ancrage existe déjà et elle est globale : une case rendue en permanence, donc un multiplicateur plus bas, donc **toutes** les actions du jeu raccourcies, y compris les tâches du fil ancré. On a acheté un actif ; les tâches qui restent sont son entretien. Si l'ancrage ne se *sent* pas assez, c'est un problème de retour sensoriel (§10), pas de mécanique.
 
+### La relance vit sur quelqu'un
+
+Décidé à l'implémentation. La relance **ne s'affiche pas sur le meuble** : elle s'affiche sur la personne à qui on a délégué, et cette personne est quelque part dans le logement. Le trajet fait partie du prix — c'est ce qui empêche déléguer d'être un bouton.
+
+**Une relance en attente occupe une case dans la tête.** C'est tout le coût du verbe, et il est exactement là où le tableau ci-dessus le promettait. *« Il faut que je pense à lui redemander »* n'est pas du travail restant : c'est une place prise. Elle s'affiche dans le bandeau, à côté des fils, avec le nom de ce qu'on a délégué.
+
+Conséquences directes :
+
+1. **Déléguer exige une case libre**, comme ancrer et comme s'asseoir. Déléguer est l'outil de celui qui manque de *temps*, jamais de celui qui manque de *place*. On ne se décharge pas sur quelqu'un la tête déjà pleine.
+2. **La relance tombe le lendemain**, pas le jour même. Sans ce décalage, on annule sa délégation dans la foulée et le verbe ne coûte plus rien. La case, elle, est prise tout de suite.
+3. **Un fil temporaire ne se clôt pas tant qu'une relance traîne.** Sinon on solde un imprévu en le passant à quelqu'un sans jamais savoir si ça a été fait.
+
+> **Refusé — la relance ne doit pas faire monter la tension du fil.** Essayé, et faux. La tension dit *« le travail n'a pas été fait »* ; or une tâche déléguée a été faite. En la comptant comme un manquement, on faisait décrocher les dispositifs des fils qu'on venait d'ancrer : le joueur qui déléguait, ancrait *et* relançait consciencieusement perdait quand même son fil, sans lever disponible. Punir le jeu correct est la pire faute possible. Le prix de la délégation est en cases, et nulle part ailleurs.
+
+Les relances d'un fil tombé par terre dorment jusqu'à ce qu'on le ramasse : le jeu ne dit jamais ce qu'on a lâché (§6), et ce n'est pas à l'autre de nous le rappeler. Et si l'on se réveille avec une tête trop petite alors qu'on ne portait plus que des relances, on en oublie une sans que rien ne le signale — c'est très exactement comme ça que ça se passe.
+
+### Relancer, c'est redemander — pas cocher
+
+Corrigé au playtest, et c'est le joueur qui a raison. Version initiale : relancer soldait la relance, la case se libérait, et si la tâche revenait le lendemain il fallait la refaire ou la redéléguer. Autrement dit relancer voulait dire *« vérifié, il l'a fait »* — une écriture comptable, pas une action.
+
+Mais on ne va pas voir quelqu'un pour vérifier ce qu'il a déjà fait. **On y va pour qu'il le refasse.** Donc relancer re-délègue : la tâche repart chez lui, et la relance retombe le lendemain. La délégation cesse d'être un coup ponctuel et devient un **arrangement durable** — ce qui rend enfin littéralement vraie la phrase du tableau : *déléguer achète du temps avec de la charge*. On paie 0,25 par jour, indéfiniment, et une case reste gelée tant que ça dure.
+
+**La sortie est unique et elle se mérite : venir le voir un jour où il n'y a rien à refaire.** Si la tâche n'est pas disponible au moment de la relance, l'arrangement s'arrête et la case se libère.
+
+Pour une tâche à récurrence longue, ça arrive tout seul un jour creux. Pour une tâche quotidienne, il n'y a qu'un moyen : **la faire soi-même une fois, puis aller le lui dire.** On paie le plein tarif de la tâche pour récupérer sa case. C'est exactement le bon geste — reprendre la charge coûte plus cher que de l'avoir gardée, et c'est pour ça qu'on ne la reprend pas. Ça évite aussi qu'une tâche d'imprévu déléguée garde son fil ouvert pour toujours via une relance qui se renouvelle toute seule.
+
+**Ne pas relancer est le pire coup du jeu, et le meuble doit le dire.** Une relance ignorée ne pourrit pas et ne s'efface pas : la case reste gelée indéfiniment — même si on ancre le fil — pendant que la tâche revient sur son meuble plein tarif, comme si de rien n'était. On paie donc les deux. C'est juste, mais c'était un piège muet : rien à l'écran ne reliait la case du bandeau et la tâche de la pièce. Le meuble affiche maintenant `déjà chez Sam — va le relancer`, et déléguer une seconde fois une tâche déjà partie est refusé — redemander, c'est relancer, et ça se fait devant lui.
+
+**À surveiller au playtest :** relancer coûte 0,25 *par jour désormais*, plus la case gelée, plus le trajet. Pour « faire à manger » (2,0/jour) l'arrangement est très rentable — c'est voulu, mais si déléguer les repas devient la réponse évidente à toute la partie, c'est le prix quotidien qu'il faut monter, pas le prix d'entrée.
+
+**La somme des deux coûts est un seuil, et le meuble doit l'afficher en entier.** Déléguer 0,5 puis relancer 0,25 fait 0,75 : en dessous, déléguer est une perte sèche. Vider le lave-vaisselle coûte 1,0 — le déléguer ne fait gagner qu'un quart d'unité *par jour*, et coûte en plus une case gelée et un trajet quotidien. C'est la bonne réponse : *on délègue ce qui coûte cher et ce qui revient souvent, on fait soi-même le petit*. Mais le joueur doit pouvoir faire ce calcul **avant**, pas le découvrir le lendemain. D'où l'étiquette : `F  déléguer   0,6 puis 0,3/jour`.
+
+Relancer n'est pas gratuit en temps, et ne doit pas le devenir : sinon on termine ses journées à zéro et on ramasse quand même toutes ses relances en se promenant.
+
+Chiffres de départ, **non validés** : déléguer 0,5 ; relancer 0,25 ; délai 1 jour. Le temps ne fait presque rien ici ; ce qui se règle, c'est le nombre de cases qu'on accepte de geler.
+
+**À trancher :**
+- Une relance par tâche déléguée, ou une seule qui solde tout un fil ? Aujourd'hui : une par tâche, et le PNJ les sert une par une.
+- Le PNJ est au salon, la pièce centrale. Le trajet est donc court depuis partout. Si déléguer se révèle trop confortable, c'est le premier levier à bouger — avant de toucher aux coûts.
+
 ### S'asseoir
 
 C'est la condition de victoire, rendue jouable. Le joueur doit **décider** de se reposer et le payer en temps. Ça ne produit rien, ça ne débloque rien.
