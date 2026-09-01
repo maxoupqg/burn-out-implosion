@@ -408,12 +408,15 @@ Tout le reste est de la plomberie qu'on ne construit pas avant de savoir si le c
 
 ## 15. Surcouches, plus tard
 
-- **Phase travail** — verbes réduits à abattre / esquiver. Produit de l'argent, de la flexibilité, et des fils qu'on ramène à la maison.
-- **Phase sommeil jouable** — la nuit devient une scène au lieu d'un calcul. Assez grosse pour avoir sa propre section : voir §16.
-- **Casse subie des dispositifs** — l'usure par négligence est passée dans le socle (§3). Reste à ajouter la casse qu'on ne contrôle pas : vacances, maladie, absence du conjoint.
-- **Conjoint** — fiabilité qui monte à force de délégations réussies, jusqu'au transfert complet d'un domaine.
-- **Roguelite** — seuls les dispositifs ancrés à fond persistent entre les runs, et ils se dégradent s'ils ne sont pas entretenus.
-- **Satire** — tout le vocabulaire d'interface parle en « optimisation », « efficience », « quick wins » pendant que le joueur ramasse.
+Ce qui reste une fois les trois systèmes du §17 mis de côté. Chaque entrée dit à quel système elle s'accroche : rien ici n'est un système à soi tout seul, et c'est le test qui permet de refuser d'en faire un.
+
+- **Phase travail** *(burn-out)* — verbes réduits à abattre / esquiver. Produit de l'argent, de la flexibilité, et des fils qu'on ramène à la maison.
+- **Casse subie des dispositifs** *(burn-out)* — l'usure par négligence est passée dans le socle (§3). Reste à ajouter la casse qu'on ne contrôle pas : vacances, maladie, absence du conjoint.
+- **Conjoint** *(burn-out)* — fiabilité qui monte à force de délégations réussies, jusqu'au transfert complet d'un domaine. C'est la suite naturelle de Déléguer, pas une mécanique neuve.
+- **Roguelite** *(structure)* — seuls les dispositifs ancrés à fond persistent entre les runs, et ils se dégradent s'ils ne sont pas entretenus. À reconsidérer maintenant que la partie n'est plus bornée à une semaine (§17) : sans fin de run, il n'y a plus de « entre les runs ».
+- **Satire** *(habillage)* — tout le vocabulaire d'interface parle en « optimisation », « efficience », « quick wins » pendant que le joueur ramasse.
+
+> **Sortie :** « Phase sommeil jouable » n'est plus une surcouche. C'est le dream system, §16 et §17.
 
 ---
 
@@ -485,3 +488,66 @@ Deux choses que cette run confirme et qu'il ne faut pas casser en touchant à au
 - **Trois fils sur cinq neutralisés, et le joueur ne s'est quand même assis que deux fois.** Le jeu ne se gagne pas en supprimant des fils : ça libère juste assez de place pour continuer.
 
 La nuit jouable devient donc un projet à part entière.
+
+---
+
+## 17. Les trois systèmes
+
+Le POC a prouvé un système. Le jeu en aura trois, et les nommer n'est pas du rangement : la frontière entre eux **est** une règle de design, et c'est elle qui empêche le jeu de devenir un simulateur de gestion générique où tout se vaut.
+
+| Système | Ce qu'il porte | État |
+|---|---|---|
+| **Burn-out system** | Temps, cases, les six verbes, les fils et les tâches | Fait — §1 à §11 |
+| **Dream system** | La nuit jouée. Écrite par la journée, ne rend que des cases | Spécifié — §16 |
+| **Survival system** | Faim, soif, humeur | À concevoir — ci-dessous |
+
+### La règle qui sépare charge et survie
+
+> **La charge est dans la tête. La survie est dans le corps.**
+> **Un besoin de survie ne prend jamais de case.**
+
+Personne n'a une case occupée par « il faut que je mange ». On a faim, c'est tout. La conséquence est double, et elle vaut d'être écrite :
+
+- **On ne peut pas ancrer la faim.** Aucun des six verbes ne mord sur le survival system. Pas de dispositif, pas de délégation, pas de « je m'en bats les couilles » — ce sont deux pressions qui ne se négocient pas l'une contre l'autre.
+- **Le survival system n'a pas de fils.** Il ne produit ni tension, ni échéance, ni débordement. S'il en produisait, ce serait du burn-out system avec un autre nom, et la distinction n'aurait servi à rien.
+
+Ce que le survival system a le droit de faire, c'est **mordre sur les deux ressources existantes** : pas mangé → moins de temps demain ; mal dormi → moins de cases demain. Il n'ajoute pas de troisième ressource. C'est ce qui le garde petit.
+
+### Les trois besoins
+
+**Faim.** Le seul qui ferme une boucle déjà ouverte : aujourd'hui « faire à manger » est une tâche qui ne produit rien, le repas disparaît et il ne reste que le lave-vaisselle. Avec la faim, le repas a une destination — et surtout la délégation ratée fait mal à un endroit neuf. Sam devait cuisiner, on n'a pas relancé, ce soir on n'a pas mangé. Aucun système actuel ne sait dire ça.
+
+**Soif.** Le meilleur des trois, et pour une raison contre-intuitive : **boire ne coûte presque rien, et c'est exactement pour ça que ça marche.** Le joueur va sauter l'action la moins chère du jeu, tous les jours, et s'en apercevoir le soir. « J'ai pas bu de la journée » est un symptôme de surcharge plus juste que la faim, parce qu'il ne s'explique par aucun manque de temps.
+
+> **Condition :** la soif reste quasi gratuite. Dès qu'elle coûte du vrai temps, c'est de la faim en plus petit, et elle ne prouve plus rien.
+
+**Humeur.** Elle ne se remplit pas, elle **se constate**. Ce n'est pas un besoin, c'est le résultat de la façon dont on a joué : des fils au sol, des échéances ratées, des jours sans s'asseoir la font descendre — et elle mord ensuite sur le temps et les cases.
+
+> **Refusé : une jauge de divertissement.** S'asseoir *est* déjà le divertissement, et c'est le cœur validé du jeu (§16, condition d'entrée) : « j'avais la place, j'ai calculé, j'ai renoncé ». Une jauge qui réclame du repos transforme le renoncement en faute et punit mécaniquement le seul geste que deux playtests ont validé.
+>
+> **Le jour où l'interface dit « va te divertir », le verbe est mort.** L'humeur donne un prix visible au renoncement ; elle ne le condamne jamais, et elle n'interdit rien.
+
+### Ce qu'on n'affiche pas
+
+Pas trois barres de plus. Deux zones, qui redisent la règle sans une ligne de texte :
+
+- **La tête** — temps, cases. Ce qui se négocie.
+- **Le corps** — faim, soif. Ce qui ne se négocie pas.
+
+L'**humeur ne va dans aucune des deux** : elle se lit sur le personnage. Une jauge en ferait une chose à optimiser ; un visage en fait une chose qu'on remarque.
+
+### La semaine n'est plus la fin
+
+Les sept jours du §11 sont un échafaudage de POC, pas le jeu. La partie est longue : on ne survit pas à une semaine, on garde quelqu'un en vie.
+
+**Ce que ça déplace :** la descente de 6 à 4 cases était l'arc complet d'une semaine. En partie longue, elle est finie en dix jours, et rester cloué au plancher pour toujours ferait du jeu un compte à rebours vers un état stable et sans issue. **La spirale doit être remontable.**
+
+**Décidé — d'où vient la remontée :** du contenu, pas d'une mécanique de plus. D'autres fils, d'autres tâches, d'autres échéances, d'autres coûts, écrits à la main par-dessus le socle. Les cinq fils actuels sont un jeu de test, pas un équilibrage : raisonner sur eux comme s'ils étaient le jeu mène à inventer des systèmes pour résoudre des problèmes qui n'existent que dans le jeu de test. Et le dream system est déjà la voie de remontée mécanique — il ne lui en faut pas une seconde.
+
+### Ordre de construction
+
+1. **Dream system.** Spécifié, débloqué, et c'est lui qui rend la partie longue tenable.
+2. **Contenu** — les fils, tâches et échéances qui font une partie longue.
+3. **Survival system.** En dernier : il demande de retoucher le contenu des fils, donc il vient après que ce contenu existe.
+
+**À trancher, et c'est le seul point ouvert du §16 :** *que fait le joueur dans le rêve ?* La section dit ce qu'on en rapporte, ce qu'on n'y met pas et comment la carte s'écrit à partir des fils — elle ne dit jamais le verbe. Marcher, fuir, chercher, ouvrir. Rien ne peut commencer avant ça.
