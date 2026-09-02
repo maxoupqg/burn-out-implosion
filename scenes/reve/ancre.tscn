@@ -1,0 +1,23 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" uid="uid://bpcqvqy63o06v" path="res://scripts/reve/ancre.gd" id="1_ancre"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_ancre"]
+radius = 40.0
+
+[node name="Ancre" type="Area2D"]
+monitoring = false
+collision_layer = 8
+collision_mask = 0
+script = ExtResource("1_ancre")
+
+[node name="Forme" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_ancre")
+
+[node name="Etiquette" type="Label" parent="."]
+offset_left = -140.0
+offset_top = -78.0
+offset_right = 140.0
+offset_bottom = -34.0
+theme_override_font_sizes/font_size = 14
+horizontal_alignment = 1

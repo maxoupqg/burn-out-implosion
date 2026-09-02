@@ -25,6 +25,9 @@ extends Node2D
 ## chose) au lieu de lire l'état réel de la journée. À laisser vrai tant qu'on
 ## prototype : sinon le premier jour ne montre que des corvées.
 @export var contenu_de_test: bool = true
+## Durée du figement quand un coup porte, en secondes réelles. Au-delà de 0,08 le
+## rêve devient pâteux ; en dessous de 0,03 on ne le sent plus.
+@export_range(0.0, 0.12, 0.01) var hitstop: float = 0.05
 
 const PLACES := [
 	Vector2(-520, -240), Vector2(480, -280), Vector2(-260, 160),
@@ -40,7 +43,6 @@ const TEST := {
 	"malade": Monstre.Genre.CHOSE,
 }
 
-var _reveur: Reveur = null
 var _monstres: Array[Monstre] = []
 var _ancres: Array[AncreDeReve] = []
 var _reste: float = 0.0
@@ -48,17 +50,25 @@ var _a_nettoyer: int = 0
 var _abattus: int = 0
 var _finie: bool = false
 var _reveille: bool = false
+var _en_hitstop: bool = false
 
 @onready var _monde: Node2D = $Monde
+## Posé dans la scène, pas construit en code : c'est la seule façon d'avoir ses
+## curseurs de ressenti — portée, cône, cadence, élan — dans l'inspecteur, et
+## c'est là qu'on passe la session à les bouger.
+@onready var _reveur: Reveur = $Monde/Reveur
 @onready var _horloge: Label = $Interface/Horloge
 @onready var _jauge: ColorRect = $Interface/Jauge
 @onready var _resultat: Label = $Interface/Resultat
 
 
 func _ready() -> void:
+	# On se rejoue au R en plein hitstop : sans ça le rêve suivant démarre figé.
+	Engine.time_scale = 1.0
 	_reste = duree_nuit
 	_resultat.hide()
-	_poser_le_reveur()
+	_reveur.a_frappe.connect(_sur_frappe)
+	_reveur.touche.connect(_sur_touche)
 	_peupler()
 	_maj_horloge()
 
@@ -74,21 +84,6 @@ func _process(delta: float) -> void:
 
 
 # --- Construction ------------------------------------------------------------
-
-func _poser_le_reveur() -> void:
-	_reveur = Reveur.creer()
-	_reveur.position = Vector2(0, 300)
-	_reveur.a_frappe.connect(_sur_frappe)
-	_reveur.touche.connect(_sur_touche)
-	_monde.add_child(_reveur)
-
-	var camera := Camera2D.new()
-	camera.position_smoothing_enabled = true
-	camera.position_smoothing_speed = 6.0
-	camera.zoom = Vector2(0.85, 0.85)
-	_reveur.add_child(camera)
-	camera.make_current()
-
 
 ## La journée écrit le niveau. Rien n'est tiré au sort tant qu'il reste un fil
 ## à traduire — c'est la règle centrale du §16, et c'est aussi ce qui rend le
@@ -181,10 +176,31 @@ func _utiliser_ancre() -> void:
 
 
 ## Le cône est calculé par le rêveur, qui seul sait où il regarde.
-func _sur_frappe(_origine: Vector2, _direction: Vector2) -> void:
+func _sur_frappe(origine: Vector2, _direction: Vector2) -> void:
+	var a_porte := false
 	for monstre in _monstres.duplicate():
-		if is_instance_valid(monstre) and _reveur.dans_la_frappe(monstre.global_position):
-			monstre.encaisser()
+		if not is_instance_valid(monstre):
+			continue
+		# Le figement se mérite : `encaisser` renvoie faux sur la chose sans nom,
+		# et le monde ne s'arrête donc pas quand on la frappe. C'est le contraste
+		# entre les deux qui dit qu'on perd son temps, pas un message.
+		if _reveur.dans_la_frappe(monstre.global_position, monstre.rayon):
+			a_porte = monstre.encaisser(origine) or a_porte
+	if a_porte:
+		_hitstop()
+
+
+## Le monde se fige le temps d'un battement de cil quand le coup porte. C'est ce
+## qui sépare « j'ai appuyé » de « j'ai tapé », et ça ne coûte aucune mécanique.
+func _hitstop() -> void:
+	if hitstop <= 0.0 or _en_hitstop:
+		return
+	_en_hitstop = true
+	Engine.time_scale = 0.04
+	# Le timer doit ignorer le ralenti, sinon il dure vingt-cinq fois trop.
+	await get_tree().create_timer(hitstop, true, false, true).timeout
+	Engine.time_scale = 1.0
+	_en_hitstop = false
 
 
 ## La machine fait le travail : ce qui est autour tombe, sans lever la main.
@@ -196,7 +212,7 @@ func _sur_ancre_utilisee(centre: Vector2, rayon: float) -> void:
 			continue
 		if monstre.global_position.distance_to(centre) <= rayon:
 			while is_instance_valid(monstre) and monstre.pv > 0:
-				monstre.encaisser()
+				monstre.encaisser(centre)
 
 
 func _sur_abattu(monstre: Monstre) -> void:

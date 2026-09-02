@@ -12,36 +12,31 @@ extends Area2D
 
 signal utilisee(centre: Vector2, rayon: float)
 
+## Chargée à la demande et pas en `preload` : la scène pointe vers ce script, et
+## un preload dans l'autre sens ferait un cycle au chargement.
+const CHEMIN_SCENE := "res://scenes/reve/ancre.tscn"
+
+static var _scene: PackedScene = null
+
 @export var rayon_effet: float = 220.0
 
 var fil: Fil = null
 var usee: bool = false
 
-var _etiquette: Label = null
+@onready var _etiquette: Label = $Etiquette
 
 
 static func creer(p_fil: Fil) -> AncreDeReve:
-	var a := AncreDeReve.new()
+	if _scene == null:
+		_scene = load(CHEMIN_SCENE)
+
+	var a: AncreDeReve = _scene.instantiate()
 	a.fil = p_fil
-	a.collision_layer = 8
-	a.collision_mask = 0
-	a.monitoring = false
-
-	var forme := CollisionShape2D.new()
-	var cercle := CircleShape2D.new()
-	cercle.radius = 40.0
-	forme.shape = cercle
-	a.add_child(forme)
-
-	a._etiquette = Label.new()
-	a._etiquette.position = Vector2(-140.0, -78.0)
-	a._etiquette.size = Vector2(280.0, 44.0)
-	a._etiquette.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	a._etiquette.add_theme_font_size_override("font_size", 14)
-	a.add_child(a._etiquette)
-	a._rafraichir()
-
 	return a
+
+
+func _ready() -> void:
+	_rafraichir()
 
 
 func a_portee(point: Vector2) -> bool:

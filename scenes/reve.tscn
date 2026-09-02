@@ -1,13 +1,16 @@
 [gd_scene format=3 uid="uid://bxksvcn84l6lw"]
 
 [ext_resource type="Script" uid="uid://s5j6et66fr8a" path="res://scripts/reve/reve.gd" id="1_reve"]
+[ext_resource type="Script" uid="uid://d4jhbtdjfk2f6" path="res://scripts/reve/reveur.gd" id="2_reveur"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_mur"]
 size = Vector2(1700, 40)
 
+[sub_resource type="CircleShape2D" id="CircleShape2D_reveur"]
+radius = 16.0
+
 [node name="Reve" type="Node2D" unique_id=1503135457]
 script = ExtResource("1_reve")
-contenu_de_test = false
 
 [node name="Monde" type="Node2D" parent="." unique_id=1614143329]
 y_sort_enabled = true
@@ -42,6 +45,20 @@ shape = SubResource("RectangleShape2D_mur")
 position = Vector2(860, 0)
 rotation = 1.5707963
 shape = SubResource("RectangleShape2D_mur")
+
+[node name="Reveur" type="CharacterBody2D" parent="Monde" unique_id=1042771630]
+position = Vector2(0, 300)
+collision_layer = 2
+script = ExtResource("2_reveur")
+elan_invulnerable = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Monde/Reveur" unique_id=1042771631]
+shape = SubResource("CircleShape2D_reveur")
+
+[node name="Camera2D" type="Camera2D" parent="Monde/Reveur" unique_id=1042771632]
+zoom = Vector2(0.85, 0.85)
+position_smoothing_enabled = true
+position_smoothing_speed = 6.0
 
 [node name="Interface" type="CanvasLayer" parent="." unique_id=1306760301]
 
