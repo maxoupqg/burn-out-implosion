@@ -1,0 +1,101 @@
+[gd_scene format=3 uid="uid://bxksvcn84l6lw"]
+
+[ext_resource type="Script" uid="uid://s5j6et66fr8a" path="res://scripts/reve/reve.gd" id="1_reve"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_mur"]
+size = Vector2(1700, 40)
+
+[node name="Reve" type="Node2D" unique_id=1503135457]
+script = ExtResource("1_reve")
+contenu_de_test = false
+
+[node name="Monde" type="Node2D" parent="." unique_id=1614143329]
+y_sort_enabled = true
+
+[node name="Fond" type="Polygon2D" parent="Monde" unique_id=1969405869]
+z_index = -20
+color = Color(0.055, 0.05, 0.075, 1)
+polygon = PackedVector2Array(-880, -580, 880, -580, 880, 580, -880, 580)
+
+[node name="Sol" type="Polygon2D" parent="Monde" unique_id=2021283600]
+z_index = -19
+color = Color(0.1, 0.095, 0.135, 1)
+polygon = PackedVector2Array(-840, -540, 840, -540, 840, 540, -840, 540)
+
+[node name="Murs" type="StaticBody2D" parent="Monde" unique_id=1224862173]
+collision_mask = 0
+
+[node name="Haut" type="CollisionShape2D" parent="Monde/Murs" unique_id=1347353952]
+position = Vector2(0, -560)
+shape = SubResource("RectangleShape2D_mur")
+
+[node name="Bas" type="CollisionShape2D" parent="Monde/Murs" unique_id=1593366856]
+position = Vector2(0, 560)
+shape = SubResource("RectangleShape2D_mur")
+
+[node name="Gauche" type="CollisionShape2D" parent="Monde/Murs" unique_id=221207021]
+position = Vector2(-860, 0)
+rotation = 1.5707963
+shape = SubResource("RectangleShape2D_mur")
+
+[node name="Droite" type="CollisionShape2D" parent="Monde/Murs" unique_id=1911727223]
+position = Vector2(860, 0)
+rotation = 1.5707963
+shape = SubResource("RectangleShape2D_mur")
+
+[node name="Interface" type="CanvasLayer" parent="." unique_id=1306760301]
+
+[node name="Horloge" type="Label" parent="Interface" unique_id=333248578]
+offset_left = 40.0
+offset_top = 28.0
+offset_right = 360.0
+offset_bottom = 66.0
+theme_override_colors/font_color = Color(0.86, 0.84, 0.9, 1)
+theme_override_font_sizes/font_size = 26
+text = "nuit"
+
+[node name="JaugeFond" type="ColorRect" parent="Interface" unique_id=459076900]
+offset_left = 40.0
+offset_top = 72.0
+offset_right = 360.0
+offset_bottom = 84.0
+color = Color(1, 1, 1, 0.09)
+
+[node name="Jauge" type="ColorRect" parent="Interface" unique_id=1809034984]
+offset_left = 40.0
+offset_top = 72.0
+offset_right = 360.0
+offset_bottom = 84.0
+color = Color(0.62, 0.7, 0.88, 0.75)
+
+[node name="Aide" type="Label" parent="Interface" unique_id=1191613771]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 40.0
+offset_top = -104.0
+offset_right = 640.0
+offset_bottom = -28.0
+grow_vertical = 0
+theme_override_colors/font_color = Color(1, 1, 1, 0.3)
+theme_override_font_sizes/font_size = 15
+text = "ZQSD / WASD  se déplacer      J  frapper      Maj  s'élancer
+E  se servir d'un ancré      R  recommencer"
+
+[node name="Resultat" type="Label" parent="Interface" unique_id=1627613358]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -320.0
+offset_top = -140.0
+offset_right = 320.0
+offset_bottom = 140.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.92, 0.9, 0.95, 1)
+theme_override_font_sizes/font_size = 22
+text = "..."
+horizontal_alignment = 1
+vertical_alignment = 1
