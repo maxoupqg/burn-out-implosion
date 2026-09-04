@@ -22,11 +22,27 @@ extends Resource
 @export var jours_semaine: int = 7
 
 @export_group("Cases")
-## Taille de la tête au départ, et plafond : une bonne nuit ne rend jamais plus
-## de place qu'on n'en avait au premier jour.
+## Taille de la tête au départ.
 @export var slots_base: int = 6
-## Et le plancher : même la pire semaine laisse de quoi porter quelque chose.
+## Le plancher : même la pire semaine laisse de quoi porter quelque chose. Ce
+## n'est pas une falaise, c'est un élastique qui tire fort.
 @export var slots_plancher: int = 4
+## Le plafond ordinaire. Une nuit gagnée rend de la place, jamais plus que ce
+## qu'on avait au premier jour.
+@export var slots_plafond: int = 6
+## La taille rendue par une nuit paisible — celle où il n'y avait *rien* : aucun
+## monstre à affronter et aucune case occupée. Ce n'est pas un plafond, c'est un
+## chiffre posé : on se réveille à ce nombre qu'on soit parti de 6 ou du
+## plancher, et il retombe au plafond ordinaire dès la nuit suivante.
+##
+## C'est la seule porte vers une tête plus grande qu'au départ, et c'est la
+## moitié montante de la spirale : mieux dormi, donc plus de place, donc des
+## journées qu'on tient, donc mieux dormi — jusqu'à ce qu'un fil de trop arrive.
+## La difficulté d'y accéder est une affaire de contenu, pas de règle : c'est le
+## calendrier des arrivées qui décide si une journée à zéro est atteignable.
+##
+## L'égaler à `slots_plafond` supprime la spirale montante sans rien casser.
+@export var slots_nuit_paisible: int = 7
 ## Au coucher, porter ce nombre de cases ou moins rend une case le lendemain.
 @export var seuil_nuit_calme: int = 2
 ## En porter autant ou plus en coûte une.

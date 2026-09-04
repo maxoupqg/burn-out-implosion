@@ -28,6 +28,16 @@ func _ready() -> void:
 	_nom.text = nom_piece
 
 
+## Le lit, s'il y en a un ici. Une seule pièce en a un, et c'est elle qui
+## termine la journée : la scène de jeu s'y branche en entrant, comme elle se
+## branche aux portes.
+func lit() -> Lit:
+	for enfant in get_children():
+		if enfant is Lit:
+			return enfant
+	return null
+
+
 func portes() -> Array[Porte]:
 	var liste: Array[Porte] = []
 	for enfant in $Portes.get_children():

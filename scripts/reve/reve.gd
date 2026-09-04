@@ -1,3 +1,4 @@
+class_name Reve
 extends Node2D
 
 ## Le prototype gris du dream system (§16, §17).
@@ -12,8 +13,17 @@ extends Node2D
 ## progression. La §16 les a refusés, et un proto qui en contient ne répond plus
 ## à la question posée — il répond « oui c'est fun », mais grâce au butin.
 ##
-## La nuit ne touche pas à `Partie`. Elle affiche ce qu'elle aurait rendu.
-## Le branchement sur `coucher()` viendra quand les verbes seront tranchés.
+## La nuit ne touche jamais à `Partie` elle-même : elle *propose* un nombre de
+## cases par `nuit_finie`, et c'est `partie.gd` qui l'applique et le borne. Le
+## rêve ne connaît donc ni le plancher à 4 ni le plafond à 6 — il ne peut pas
+## les franchir même en le voulant.
+##
+## Elle se joue de deux façons : lancée seule (F6) pour régler le ressenti, ou
+## montée en calque au-dessus de `main.tscn` quand on va se coucher.
+
+## Ce que la nuit rend au réveil : des cases, et rien d'autre (§16). `paisible`
+## dit qu'il n'y avait rien du tout — c'est ce qui ouvre le plafond haut.
+signal nuit_finie(delta: int, paisible: bool)
 
 ## Durée d'une nuit, en secondes. Le curseur le plus important du proto : c'est
 ## lui qui décide si on nettoie tout ou si on doit choisir.
@@ -51,12 +61,19 @@ var _abattus: int = 0
 var _finie: bool = false
 var _reveille: bool = false
 var _en_hitstop: bool = false
+## Ce que la nuit va rendre, une fois qu'on aura accusé réception du bilan.
+var _delta: int = 0
+var _paisible: bool = false
+var _attend_reveil: bool = false
 
 @onready var _monde: Node2D = $Monde
 ## Posé dans la scène, pas construit en code : c'est la seule façon d'avoir ses
 ## curseurs de ressenti — portée, cône, cadence, élan — dans l'inspecteur, et
 ## c'est là qu'on passe la session à les bouger.
 @onready var _reveur: Reveur = $Monde/Reveur
+## En calque au-dessus du jeu, deux caméras coexistent : celle du logement et
+## celle-ci. Le rêve prend la vue en arrivant, et la rend au réveil.
+@onready var _camera: Camera2D = $Monde/Reveur/Camera2D
 @onready var _horloge: Label = $Interface/Horloge
 @onready var _jauge: ColorRect = $Interface/Jauge
 @onready var _resultat: Label = $Interface/Resultat
@@ -67,10 +84,14 @@ func _ready() -> void:
 	Engine.time_scale = 1.0
 	_reste = duree_nuit
 	_resultat.hide()
+	_camera.make_current()
 	_reveur.a_frappe.connect(_sur_frappe)
 	_reveur.touche.connect(_sur_touche)
 	_peupler()
 	_maj_horloge()
+
+	if _monstres.is_empty():
+		_nuit_sans_reve()
 
 
 func _process(delta: float) -> void:
@@ -156,16 +177,75 @@ func _genre_de(fil: Fil) -> int:
 	return Monstre.Genre.CORVEE
 
 
+## Rien à affronter : on ne fait pas jouer ça.
+##
+## Une arène vide n'est pas une nuit facile, c'est soixante-quinze secondes de
+## marche — et `_terminer` n'y serait même jamais atteint, puisqu'il n'est
+## appelé que par un monstre abattu, un contact, un réveil ou l'horloge.
+##
+## Deux nuits très différentes se cachent là-dessous, et c'est pourquoi on ne
+## récompense pas l'arène vide mais la tête vide : **une relance ne produit
+## aucun monstre**. Le §16 lui donne un mur pour un fil ancré, une chose sans
+## nom pour un fil au sol, et rien du tout pour ce qu'on a passé à quelqu'un.
+## Celui qui a tout délégué se couche donc l'arène déserte et la tête pleine :
+## il n'a personne à affronter, il n'a pas pour autant bien dormi.
+func _nuit_sans_reve() -> void:
+	_finie = true
+	_reveur.set_physics_process(false)
+
+	# Rien à montrer : ni décor, ni horloge, ni aide. Une ligne sur du noir.
+	_monde.hide()
+	for enfant in $Interface.get_children():
+		enfant.visible = enfant == _resultat
+
+	_paisible = Partie.cases_occupees() == 0
+	# La nuit paisible ne se compte pas, elle pose le chiffre : `delta` ne sert
+	# alors à rien et `Partie` l'ignore. Le barème ne parle que de l'autre cas,
+	# celui de la tête pleine sans personne en face.
+	_delta = 0 if _paisible else Partie.delta_de_nuit_calculee()
+	_attend_reveil = true
+
+	var texte := ""
+	var effet := ""
+	if _paisible:
+		texte = "Nuit paisible.\n\nIl n'y avait rien à porter."
+		effet = "%d cases demain" % Partie.reglages.slots_nuit_paisible
+	else:
+		texte = "Personne à affronter.\n\nTu as quand même mal dormi."
+		effet = "%+d case demain" % _delta
+
+	_resultat.text = "%s\n\n%s\n\n%s" % [
+		texte, effet, "R — recommencer" if _autonome() else "E — se lever",
+	]
+	_resultat.show()
+
+
 # --- Jeu ---------------------------------------------------------------------
 
 func _unhandled_input(event: InputEvent) -> void:
+	# Avant tout le reste : sinon l'appui qui vient de déclencher un ancré, et
+	# de vider la salle du même coup, servirait aussi à se lever.
+	if _attend_reveil:
+		if event.is_action_pressed("interagir"):
+			_attend_reveil = false
+			nuit_finie.emit(_delta, _paisible)
+		return
+
 	if event.is_action_pressed("interagir") and not _finie:
 		_utiliser_ancre()
 
 	# Un proto se rejoue vingt fois de suite : la relance doit être immédiate.
+	# Mais en calque au-dessus du jeu, la scène courante est `main.tscn` : on
+	# rechargerait la partie entière au lieu de la nuit.
 	var touche := event as InputEventKey
 	if touche != null and touche.pressed and not touche.echo and touche.keycode == KEY_R:
-		get_tree().reload_current_scene()
+		if _autonome():
+			get_tree().reload_current_scene()
+
+
+## Vrai quand on lance `reve.tscn` toute seule pour régler le ressenti.
+func _autonome() -> bool:
+	return get_tree().current_scene == self
 
 
 func _utiliser_ancre() -> void:
@@ -242,31 +322,36 @@ func _maj_horloge() -> void:
 	_jauge.size.x = 320.0 * clampf(_reste / duree_nuit, 0.0, 1.0)
 
 
-## Ce que la nuit rend : des cases, et rien d'autre (§16). Le plancher à 4 et le
-## plafond à 6 restent le plafond du monde — une nuit héroïque ne donne pas 8.
+## Ce que la nuit rend : des cases, et rien d'autre (§16). Le résultat n'est pas
+## appliqué ici — il attend qu'on le lise, puis part dans `nuit_finie`.
 func _terminer() -> void:
 	if _finie:
 		return
 	_finie = true
+
+	# Une nuit peut se terminer en plein figement. Sans ça, le logement rouvrirait
+	# au ralenti et on chercherait longtemps pourquoi.
+	Engine.time_scale = 1.0
 
 	for monstre in _monstres:
 		if is_instance_valid(monstre):
 			monstre.set_physics_process(false)
 	_reveur.set_physics_process(false)
 
-	var delta := 0
 	var pourquoi := ""
 	if _reveille:
-		delta = -1
+		_delta = -1
 		pourquoi = "Quelque chose t'a rattrapé. Tu ne sais toujours pas quoi."
 	elif _abattus >= _a_nettoyer:
-		delta = 1
+		_delta = 1
 		pourquoi = "Nuit blanche au sens propre : il ne restait rien."
 	else:
-		delta = 0
+		_delta = 0
 		pourquoi = "Le jour s'est levé sur ce qui traînait encore."
 
-	_resultat.text = "%s\n\n%d / %d abattus\n\n%s case demain\n\nR — recommencer" % [
-		pourquoi, _abattus, _a_nettoyer, "%+d" % delta,
+	_attend_reveil = true
+	_resultat.text = "%s\n\n%d / %d abattus\n\n%s case demain\n\n%s" % [
+		pourquoi, _abattus, _a_nettoyer, "%+d" % _delta,
+		"R — recommencer" if _autonome() else "E — se lever",
 	]
 	_resultat.show()

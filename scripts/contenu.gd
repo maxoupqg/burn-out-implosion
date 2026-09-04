@@ -13,8 +13,12 @@ extends RefCounted
 const DOSSIER_FILS := "res://donnees/fils"
 const DOSSIER_TACHES := "res://donnees/taches"
 
-## Les pièces du logement, dans l'ordre du plan : Cuisine ↔ Salon ↔ Salle de
-## bain. Aller de la cuisine à la salle de bain se paie donc deux fois (§9).
+## Où un fil lâché peut tomber. Le plan complet est Cuisine ↔ Salon ↔ Salle de
+## bain, plus la Chambre qui pend au salon — mais la chambre n'est pas là.
+##
+## Elle est la seule pièce qu'on traverse forcément, matin et soir : un fil
+## tombé dedans serait revu tous les jours, donc jamais oublié. Ce serait
+## l'exact contraire du §6, dont tout l'intérêt est de ne pas savoir où.
 const PIECES := ["cuisine", "salon", "salle_de_bain"]
 
 

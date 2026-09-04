@@ -541,14 +541,15 @@ func vider_tete() -> bool:
 
 # --- Fin de journée ----------------------------------------------------------
 
-## Fin de journée (§7). La nuit n'est pas une scène, c'est ce calcul :
-## le nombre de fils portés au coucher fixe la taille de la tête du lendemain.
+## La soirée (§7, étapes 1 à 4). Tout ce qui se règle sur la journée écoulée :
+## ce qu'on laisse traîner enfle, puis les dispositifs usés lâchent, puis les
+## échéances tombent sur ce qui reste à découvert, puis ce qui dort au sol
+## pourrit. L'ordre compte, les effets se propagent.
 ##
-## L'ordre compte, les effets se propagent : ce qu'on laisse traîner enfle,
-## puis les dispositifs usés lâchent, puis les échéances tombent sur ce qui
-## reste à découvert, puis la nuit se règle sur ce qu'on emporte au lit — et
-## seulement après, demain arrive.
-func coucher() -> void:
+## C'est l'état obtenu ici que le rêve va lire (§16). Ce découpage n'est donc
+## pas une commodité : un prélèvement automatique qui vient de céder ne doit pas
+## se présenter comme un mur dans le rêve de la nuit même.
+func passer_la_soiree() -> void:
 	if finie:
 		return
 
@@ -608,15 +609,57 @@ func coucher() -> void:
 			if fil.jours_au_sol >= 2:
 				fil.tension = Fil.TENSION_SEUIL
 
-	# 5. La nuit se règle sur ce qu'on emporte au lit — avant que demain
-	#    n'apporte ses propres fils.
+
+## Ce que la nuit rend quand on ne l'a pas jouée. C'était la règle du §7 ; le
+## §16 l'a dégradée au rang de *résumé d'une nuit qu'on n'a pas vue*. Elle sert
+## encore, et il faut qu'elle serve : un rêve interrompu, sauté, ou une journée
+## qu'on teste sans passer par le lit doivent quand même rendre un nombre de
+## cases défendable.
+func delta_de_nuit_calculee() -> int:
 	var portees := cases_occupees()
-	var delta := 0
 	if portees <= reglages.seuil_nuit_calme:
-		delta = 1
-	elif portees >= reglages.seuil_nuit_charge:
-		delta = -1
-	slots = clampi(slots + delta, reglages.slots_plancher, reglages.slots_base)
+		return 1
+	if portees >= reglages.seuil_nuit_charge:
+		return -1
+	return 0
+
+
+## Le lendemain (§7, étapes 5 à 8). `delta` est le nombre de cases que la nuit a
+## rendu : du rêve s'il a été joué, du barème sinon.
+##
+## `paisible` dit qu'il n'y avait rien du tout cette nuit-là — ni monstre à
+## affronter, ni case occupée. C'est le seul cas qui donne droit au plafond haut,
+## et c'est la moitié montante de la spirale : la journée parfaite est la seule
+## chose au monde qui agrandit la tête.
+##
+## Elle ne l'agrandit pas d'un cran, elle la remet à neuf : une nuit vide rend 7
+## qu'on soit parti de 6 ou du plancher. Sinon la sortie du bas serait fermée —
+## à 4 cases, se coucher la tête vide demande une journée que 4 cases ne
+## permettent plus de faire, et il faudrait trois nuits parfaites d'affilée pour
+## remonter. La nuit vide *est* la remontée, pas son premier échelon.
+##
+## La septième case ne vaut que pour la journée qui suit cette nuit-là. Elle
+## n'est pas acquise : dès qu'il y a eu quelqu'un à affronter, le plafond
+## redevient 6 et la case s'en va, quel qu'ait été le résultat du combat. C'est
+## un prêt sur une nuit vide, pas un palier gagné.
+##
+## Le clamp est ici et nulle part ailleurs. Le rêve propose un nombre, il ne
+## décide jamais des bornes — c'est ce qui garantit qu'aucune nuit, si héroïque
+## soit-elle, ne peut sortir du monde par le haut.
+func se_lever(delta: int, paisible: bool = false) -> void:
+	if finie:
+		return
+
+	# 5. La nuit se règle sur ce qu'on a emporté au lit — avant que demain
+	#    n'apporte ses propres fils.
+	# Le plafond du jour, pas celui d'hier : une nuit ordinaire rabote la
+	# septième case même si elle s'est bien passée. Il faut une nouvelle nuit
+	# vide pour la ravoir. Et la nuit vide ne compte pas ses cases : elle pose
+	# le chiffre, `delta` n'a plus rien à dire.
+	if paisible:
+		slots = reglages.slots_nuit_paisible
+	else:
+		slots = clampi(slots + delta, reglages.slots_plancher, reglages.slots_plafond)
 
 	jour += 1
 
@@ -675,3 +718,11 @@ func coucher() -> void:
 	elif jour > reglages.jours_semaine:
 		finie = true
 		partie_finie.emit("semaine")
+
+
+## Une journée entière sans rêve : la soirée, le barème, le lendemain. C'est le
+## §7 tel qu'il était avant que la nuit devienne jouable, et c'est ce qui permet
+## de continuer à playtester le jour seul pendant que le rêve se règle.
+func coucher() -> void:
+	passer_la_soiree()
+	se_lever(delta_de_nuit_calculee())

@@ -259,7 +259,7 @@ Le nombre de **cases occupées au moment du coucher** détermine la taille de la
 | 3 – 4 | correcte | inchangé |
 | 5 et + | agitée | **−1 slot** demain |
 
-**Plancher à 4 slots, plafond au max de base (6).**
+**Plancher à 4 slots, plafond au max de base (6)** — sauf nuit paisible, la seule exception, ouverte par le §16.
 Le plancher évite la falaise : c'est un élastique qui tire fort, pas une mort programmée.
 
 Deux effets recherchés :
@@ -448,7 +448,19 @@ Le rêve n'a pas d'économie propre : ni objets, ni statistiques, ni monnaie. So
 
 > **Le §16 ne s'ajoute pas au §7. Il le remplace.** Le barème « 0–2 cases → +1 slot » devient le *résumé* d'une nuit qu'on n'a pas jouée, pas une règle parallèle.
 
-Conséquence à tenir : **le plancher à 4 et le plafond à 6 restent le plafond du monde.** Une nuit héroïque ne donne pas 8 cases. On ne peut pas gagner sa journée en dormant.
+Conséquence à tenir : **le plancher est à 4, et le plafond ordinaire à 6.** Une nuit héroïque ne donne pas 8 cases. On ne peut pas gagner sa journée en dormant.
+
+**Une seule porte au-dessus de 6 : la nuit paisible.** Se coucher la tête *entièrement* vide — aucune case occupée, donc aucun monstre à affronter — ne se joue pas. On affiche une ligne et on se réveille à **7**.
+
+Sept **quel que soit le point de départ** : la nuit vide ne compte pas les cases, elle pose le chiffre. Le barème du §7 ne s'applique pas ce matin-là. C'est ce qui garde ouverte la sortie par le bas — à 4 cases, une tête vide demande une journée que 4 cases ne permettent plus de faire, et s'il fallait trois nuits parfaites d'affilée pour remonter, le plancher serait une prison. **La nuit vide est la remontée, pas son premier échelon.**
+
+C'est la moitié montante de la spirale du §17 : mieux dormi, donc plus de place, donc des journées qu'on tient, donc mieux dormi — jusqu'au fil de trop.
+
+Ce n'est pas le butin refusé plus haut : une case n'est pas de la puissance, c'est la seule monnaie que la nuit ait le droit de rendre, et c'est déjà celle du §7. Et ça ne rouvre pas le couplage « bonne journée → nuit facile » : la condition n'est pas *une bonne journée*, c'est **zéro case**, un état que le calendrier des arrivées rend rare ou impossible à volonté. La difficulté d'y accéder est une affaire de contenu, pas de règle.
+
+**La septième case ne vaut que pour la journée suivante.** Elle n'est pas acquise : à la nuit d'après, s'il y a eu quelqu'un à affronter, le plafond redevient 6 et la case s'en va — même si le combat s'est bien passé. C'est un prêt sur une nuit vide, pas un palier gagné, et il faut refaire une journée parfaite pour le reprendre.
+
+C'est ce qui empêche la spirale montante de devenir un cliquet. Sans ça, une seule journée parfaite suffirait à s'installer à 7 pour le reste de la partie, et le §17 y perdrait sa descente : le plafond doit pouvoir remonter, il ne doit pas pouvoir se verrouiller.
 
 ### Ce que la journée écrit
 
