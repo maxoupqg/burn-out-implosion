@@ -33,3 +33,14 @@ extends Resource
 ## Jours entre la tâche mère et l'ouverture de celle-ci. 0 = dans la foulée
 ## (le lave-vaisselle), 1 = le lendemain (le linge qui tourne la nuit).
 @export var delai_prerequis: int = 0
+
+@export_group("Ce que ça laisse derrière")
+## Les conséquences hors du fil : faire à manger met un repas sur la table,
+## débarrasser l'enlève. On y dépose des `EffetTache` — `EffetBesoin` pour
+## ouvrir ou fermer un geste du corps, et ce qui viendra plus tard.
+##
+## Le prérequis juste au-dessus, lui, ne concerne que les tâches entre elles. Les
+## deux sont volontairement séparés : une tâche mère *programme* sa suite, un
+## effet *change le monde*. Mélanger les deux obligerait à inventer une
+## pseudo-tâche « le repas est prêt » qui n'a ni fil, ni coût, ni meuble.
+@export var effets: Array[EffetTache] = []

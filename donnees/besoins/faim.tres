@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="BesoinDef" format=3]
+
+[ext_resource type="Script" path="res://scripts/besoin_def.gd" id="1_besoin"]
+
+[resource]
+script = ExtResource("1_besoin")
+id = "faim"
+nom = "Faim"
+verbe = "manger"
+capacite = 20.0
+cout_base = 0.5
+accessible_au_depart = false
+absence = "L'assiette est vide."
+jours_avant_peremption = 1
+humeur_par_unite = 0.5
+jours_avant_fatal = 3
+alerte = "Tu n'as pas mangé."
+titre_fin = "Tu ne t'es pas relevé."
+sous_titre_fin = "Trois jours sans manger.\nIl fallait faire à manger, et il fallait s'asseoir pour le faire."

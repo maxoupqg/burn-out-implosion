@@ -50,6 +50,18 @@ func rafraichir() -> void:
 		_etiquette.modulate = Color(1, 1, 1, 0.3)
 		return
 
+	# Rien à prendre. Le meuble reste visible et reste éteint : c'est ce qui
+	# distingue « il n'y a rien sur la table » de « je n'ai pas faim ». Dit avec
+	# des mots, ceux-là, parce que rien dans la pièce ne peut faire deviner
+	# qu'une tâche ailleurs rallumerait le meuble.
+	if not b.accessible:
+		_pastille.visible = false
+		_etiquette.text = nom_meuble
+		if b.def.absence != "":
+			_etiquette.text += "\n%s" % b.def.absence
+		_etiquette.modulate = Color(1, 1, 1, 0.3)
+		return
+
 	# Plein, le meuble s'éteint. C'est son extinction qui dit « ça va » — et son
 	# rallumage qui apprend au joueur que boire a un moment, sans qu'aucune
 	# ligne de texte ait à le lui expliquer.

@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3]
+[gd_scene load_steps=17 format=3]
 
 [ext_resource type="Script" path="res://scripts/piece.gd" id="1_piece"]
 [ext_resource type="PackedScene" path="res://scenes/point_interaction.tscn" id="2_point"]
@@ -13,6 +13,8 @@
 [ext_resource type="Resource" path="res://donnees/taches/ranger_courses.tres" id="9_ranger"]
 [ext_resource type="Resource" path="res://donnees/fils/repas.tres" id="10_repas"]
 [ext_resource type="Resource" path="res://donnees/fils/courses.tres" id="11_courses"]
+[ext_resource type="Resource" path="res://donnees/taches/debarrasser.tres" id="14_debarrasser"]
+[ext_resource type="Resource" path="res://donnees/besoins/faim.tres" id="15_faim"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_h"]
 size = Vector2(1040, 20)
@@ -90,6 +92,16 @@ nom_meuble = "Bloc-notes"
 position = Vector2(-120, 60)
 tache_def = ExtResource("9_ranger")
 nom_meuble = "Cellier"
+
+[node name="Table" parent="." instance=ExtResource("2_point")]
+position = Vector2(100, 60)
+tache_def = ExtResource("14_debarrasser")
+nom_meuble = "La table"
+
+[node name="Assiette" parent="." instance=ExtResource("12_besoin")]
+position = Vector2(320, 60)
+besoin_def = ExtResource("15_faim")
+nom_meuble = "L'assiette"
 
 [node name="Evier" parent="." instance=ExtResource("12_besoin")]
 position = Vector2(320, -110)

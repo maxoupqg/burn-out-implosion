@@ -171,6 +171,12 @@ func _maj_corps() -> void:
 		if besoin.a_sec():
 			var reste := besoin.sursis()
 			etiquette += "   à sec" if reste < 0 else "   plus que %d j" % reste
+		# Le meuble ne se voit que dans sa pièce ; la jauge se voit partout. Sans
+		# cette ligne on traverse le logement affamé sans savoir qu'il n'y a rien
+		# à manger au bout — et le seul reproche du playtest externe est déjà
+		# « on ne voit pas ce qu'il faut faire ».
+		elif not besoin.accessible and besoin.def.absence != "":
+			etiquette += "   %s" % besoin.def.absence
 		jauge.afficher(etiquette, besoin.part())
 
 

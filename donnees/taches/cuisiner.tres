@@ -1,7 +1,14 @@
-[gd_resource type="Resource" script_class="TacheDef" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="TacheDef" load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/tache_def.gd" id="1_def"]
 [ext_resource type="Resource" path="res://donnees/fils/repas.tres" id="2_fil"]
+[ext_resource type="Script" path="res://scripts/effet_besoin.gd" id="3_effet"]
+[ext_resource type="Resource" path="res://donnees/besoins/faim.tres" id="4_faim"]
+
+[sub_resource type="Resource" id="Resource_ouvre_faim"]
+script = ExtResource("3_effet")
+besoin = ExtResource("4_faim")
+geste = 0
 
 [resource]
 script = ExtResource("1_def")
@@ -11,3 +18,4 @@ fil = ExtResource("2_fil")
 cout_base = 2.0
 recurrence_jours = 1
 delai_prerequis = 0
+effets = Array[EffetTache]([SubResource("Resource_ouvre_faim")])

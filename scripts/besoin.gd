@@ -18,6 +18,12 @@ var reserve: float = 0.0
 ## Nuits consécutives passées la réserve vide. C'est lui qui tue, pas la
 ## réserve : être à sec une heure avant de se coucher ne coûte qu'un cran.
 var jours_a_sec: int = 0
+## Y a-t-il quelque chose à prendre ? Le robinet coule toujours ; la table n'est
+## mise que si on a cuisiné. Ce sont les `EffetBesoin` des tâches qui ouvrent et
+## ferment ça — le besoin, lui, continue de se vider dans tous les cas.
+var accessible: bool = true
+## Nuits passées depuis que l'accès s'est ouvert. Sert à le faire périmer.
+var jours_ouvert: int = 0
 
 # --- Lecture de la définition -----------------------------------------------
 
@@ -52,6 +58,7 @@ static func depuis(p_def: BesoinDef) -> Besoin:
 	var besoin := Besoin.new()
 	besoin.def = p_def
 	besoin.reserve = p_def.capacite
+	besoin.accessible = p_def.accessible_au_depart
 	return besoin
 
 
@@ -81,6 +88,32 @@ func consommer(unites: float) -> float:
 	var couvert := minf(reserve, unites)
 	reserve -= couvert
 	return unites - couvert
+
+
+## Le repas arrive sur la table. Passe par ici et pas par `accessible` en direct :
+## rouvrir doit remettre le compteur de péremption à zéro, sinon cuisiner deux
+## jours de suite laisserait le second repas hériter de l'âge du premier.
+func ouvrir() -> void:
+	accessible = true
+	jours_ouvert = 0
+
+
+func fermer() -> void:
+	accessible = false
+
+
+## Le repas refroidit. Renvoie true s'il vient de se perdre.
+##
+## Appelé au coucher, et c'est ce qui décide du rythme : à un jour, se coucher
+## sans avoir mangé perd le repas — la journée où il était là comptait pour elle.
+func vieillir() -> bool:
+	if not accessible or def.jours_avant_peremption <= 0:
+		return false
+	jours_ouvert += 1
+	if jours_ouvert < def.jours_avant_peremption:
+		return false
+	accessible = false
+	return true
 
 
 ## Boire remplit tout. Pas de demi-mesure : le geste est gratuit, le doser

@@ -332,6 +332,11 @@ func _consommer_corps(consomme: float) -> void:
 func peut_satisfaire(besoin: Besoin) -> bool:
 	if besoin == null or finie:
 		return false
+	# Rien à prendre : le repas n'a pas été fait, ou on vient de débarrasser. Le
+	# besoin continue de se vider pendant ce temps-là — c'est précisément ce qui
+	# fait qu'oublier de cuisiner coûte quelque chose.
+	if not besoin.accessible:
+		return false
 	# Plein, le meuble s'éteint. Sans ça il resterait allumé en permanence et
 	# n'apprendrait plus rien : c'est son extinction qui dit « ça va ».
 	if besoin.plein():
@@ -374,6 +379,13 @@ func faire_tache(tache_id: String) -> bool:
 ## faite ou passée à quelqu'un. Le repas est cuit dans les deux cas, donc le
 ## lave-vaisselle est plein dans les deux cas : déléguer ne dispense pas de la
 ## suite, sinon ce serait un effacement et pas un transfert.
+##
+## **Tout tombe au même instant, y compris quand on délègue.** Une tentative de
+## faire attendre les effets jusqu'à la relance a été essayée et retirée le
+## 2026-09-17 : elle désynchronisait les deux moitiés d'une même tâche. Confier
+## la cuisine débloquait « débarrasser la table » tout de suite, mais laissait
+## l'assiette vide — le monde demandait de ranger un repas qui n'existait pas.
+## Sam exécute sur-le-champ ; la relance sert au lendemain.
 func _resoudre(tache: Tache) -> void:
 	if tache.une_seule_fois():
 		tache.terminee = true
@@ -391,6 +403,21 @@ func _resoudre(tache: Tache) -> void:
 		if suivante.def.prerequis == tache.def:
 			suivante.bloquee = false
 			suivante.disponible_le = jour + suivante.delai_prerequis
+
+	_appliquer_effets(tache)
+
+
+## Ce que la tâche change ailleurs que sur les fils : un repas apparaît sur la
+## table, ou en disparaît. `Partie` ne sait pas ce que fait un effet, elle sait
+## seulement qu'il faut l'appliquer — c'est ce qui permet d'en ajouter d'autres
+## sans rouvrir ce fichier.
+func _appliquer_effets(tache: Tache) -> void:
+	if tache.def.effets.is_empty():
+		return
+	for effet: EffetTache in tache.def.effets:
+		if effet != null:
+			effet.appliquer()
+	besoins_change.emit()
 
 
 ## Déléguer (§4) : l'exact contraire d'ancrer. Ancrer coûte très cher en temps
@@ -723,8 +750,13 @@ func passer_la_soiree() -> void:
 	# 5. Le corps fait ses comptes (§18). C'est le coucher qui compte les jours,
 	#    pas la réserve : être à sec une heure avant d'aller dormir coûte un cran
 	#    d'humeur, pas une journée de sursis.
+	#
+	#    Le repas refroidit d'abord : ce qui était sur la table aujourd'hui y
+	#    était pour aujourd'hui. Se coucher sans avoir mangé perd le repas, et
+	#    c'est ce qui empêche « j'ai cuisiné lundi » de nourrir toute la semaine.
 	var journee_propre := fils_au_sol().is_empty()
 	for besoin: Besoin in besoins.values():
+		besoin.vieillir()
 		if besoin.a_sec():
 			besoin.jours_a_sec += 1
 			journee_propre = false

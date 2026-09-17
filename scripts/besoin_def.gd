@@ -31,6 +31,24 @@ extends Resource
 ## faim en plus petit et elle ne prouve plus rien.
 @export var cout_base: float = 0.0
 
+@export_group("Accès")
+## Le geste est-il possible sans avoir rien fait avant ? Un robinet, oui : il
+## coule depuis toujours. Un repas, non — il faut l'avoir cuisiné.
+##
+## Un besoin fermé au départ exige donc une tâche qui l'ouvre (`EffetBesoin`) et
+## qui soit atteignable dès le premier jour, sinon le corps meurt sans recours.
+@export var accessible_au_depart: bool = true
+## Ce que le meuble dit quand il n'y a rien à prendre. C'est le seul endroit où
+## le jeu explique pourquoi la table est éteinte alors qu'on a faim — sans ça, le
+## joueur croit à un meuble décoratif et ne cherche pas la tâche qui l'allume.
+@export var absence: String = ""
+## Nuits pendant lesquelles l'accès tient une fois qu'une tâche l'a ouvert.
+##
+## 0 = il ne se referme jamais tout seul, c'est le robinet. 1 = le repas ne
+## survit pas à la nuit. Sans ce compteur, cuisiner une fois ouvrirait l'accès
+## pour toujours et le besoin sortirait du jeu dès le deuxième jour.
+@export var jours_avant_peremption: int = 0
+
 @export_group("À sec")
 ## Crans d'humeur perdus par unité de temps consommée la réserve vide.
 ##

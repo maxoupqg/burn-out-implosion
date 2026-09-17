@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="TacheDef" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/tache_def.gd" id="1_def"]
+[ext_resource type="Resource" path="res://donnees/fils/repas.tres" id="2_fil"]
+[ext_resource type="Resource" path="res://donnees/taches/cuisiner.tres" id="3_prerequis"]
+[ext_resource type="Script" path="res://scripts/effet_besoin.gd" id="4_effet"]
+[ext_resource type="Resource" path="res://donnees/besoins/faim.tres" id="5_faim"]
+
+[sub_resource type="Resource" id="Resource_ferme_faim"]
+script = ExtResource("4_effet")
+besoin = ExtResource("5_faim")
+geste = 1
+
+[resource]
+script = ExtResource("1_def")
+id = "debarrasser"
+nom = "Débarrasser la table"
+fil = ExtResource("2_fil")
+cout_base = 0.5
+recurrence_jours = 1
+prerequis = ExtResource("3_prerequis")
+delai_prerequis = 0
+effets = Array[EffetTache]([SubResource("Resource_ferme_faim")])

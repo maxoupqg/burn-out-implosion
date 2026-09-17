@@ -54,6 +54,17 @@ func rafraichir() -> void:
 	_pastille.color = COULEUR_ACTIF
 	_etiquette.text = "%s   %.1f" % [t.nom, cout]
 
+	# Ce que la tâche ouvre ou referme ailleurs. Sans cette ligne, faire à manger
+	# et débarrasser se ressemblent : deux tâches d'un même fil, à deux prix. La
+	# conséquence est le seul endroit où elles diffèrent, donc elle s'annonce
+	# avant l'appui, pas après.
+	var annonces := PackedStringArray()
+	for effet: EffetTache in t.def.effets:
+		if effet != null and effet.annonce() != "":
+			annonces.append(effet.annonce())
+	if not annonces.is_empty():
+		_etiquette.text += "\n%s" % "   ·   ".join(annonces)
+
 	# Une tâche déléguée qu'on n'a pas relancée revient ici, plein tarif, comme
 	# si de rien n'était — pendant que sa case reste gelée dans la tête. Le lien
 	# entre les deux doit se lire sur le meuble, sinon on paie les deux sans

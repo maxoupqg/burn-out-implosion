@@ -513,7 +513,7 @@ Le POC a prouvé un système. Le jeu en aura trois, et les nommer n'est pas du r
 |---|---|---|
 | **Burn-out system** | Temps, cases, les six verbes, les fils et les tâches | Fait — §1 à §11 |
 | **Dream system** | La nuit jouée. Écrite par la journée, ne rend que des cases | Spécifié — §16 |
-| **Survival system** | Faim, soif, humeur | Soif et humeur faites ; la faim attend le contenu |
+| **Survival system** | Faim, soif, humeur | Les trois sont faits ; reste à les régler au playtest |
 
 ### La règle qui sépare charge et survie
 
@@ -529,7 +529,9 @@ Ce que le survival system a le droit de faire, c'est **mordre sur les deux resso
 
 ### Les trois besoins
 
-**Faim.** Le seul qui ferme une boucle déjà ouverte : aujourd'hui « faire à manger » est une tâche qui ne produit rien, le repas disparaît et il ne reste que le lave-vaisselle. Avec la faim, le repas a une destination — et surtout la délégation ratée fait mal à un endroit neuf. Sam devait cuisiner, on n'a pas relancé, ce soir on n'a pas mangé. Aucun système actuel ne sait dire ça.
+**Faim.** Le seul qui ferme une boucle déjà ouverte : « faire à manger » était une tâche qui ne produisait rien, le repas disparaissait et il ne restait que le lave-vaisselle. Avec la faim, le repas a une destination.
+
+> **Fait le 2026-09-17.** Les plaques ouvrent l'accès, l'assiette le consomme, la table le referme — trois meubles, trois gestes, et le repas périme à la nuit. Le détail est plus bas, dans « Ce qu'une tâche laisse derrière elle ».
 
 **Soif.** Le meilleur des trois, et pour une raison contre-intuitive : **boire ne coûte presque rien, et c'est exactement pour ça que ça marche.** Le joueur va sauter l'action la moins chère du jeu, tous les jours, et s'en apercevoir le soir. « J'ai pas bu de la journée » est un symptôme de surcharge plus juste que la faim, parce qu'il ne s'explique par aucun manque de temps.
 
@@ -578,6 +580,24 @@ Le visage viendra **en plus**, pas à la place. Et la crainte d'origine tient to
 >
 > **Le jour où l'interface dit « va te divertir », le verbe est mort.** L'humeur ne s'achète nulle part : elle remonte parce que la journée s'est bien passée, jamais parce qu'on a payé pour.
 
+### Ce qu'une tâche laisse derrière elle
+
+Le §18 disait que « faire à manger » est une tâche qui ne produit rien. Elle peut désormais produire : **une tâche ouvre ou ferme l'accès à un besoin.** Cuisiner met un repas sur la table, débarrasser l'enlève. Le besoin, lui, continue de se vider pendant ce temps-là — c'est ce qui donne un prix à l'oubli de cuisiner.
+
+> **Ça ne nourrit pas, ça rend le geste possible.** Cuisiner ne remplit aucune réserve. Le repas est là, il reste à le manger, et manger se paie à son meuble comme boire. Deux gestes, deux détours. Sinon la tâche deviendrait un moyen détourné de recharger le corps sans se déplacer, et le prix-détour du §18 tomberait.
+
+**Écrit comme une liste d'effets, pas comme un cas particulier.** Chaque `TacheDef` porte une liste d'`EffetTache`, posée dans l'inspecteur. `EffetBesoin` est le premier du genre : il ouvre ou il ferme un besoin. Les suivants s'écriront à côté, sans rouvrir la boucle qui résout les tâches — `Partie` ne sait pas ce que fait un effet, seulement qu'il faut l'appliquer.
+
+**Ce qui s'ouvre finit par se refermer.** Un besoin porte un délai de péremption en jours, compté au coucher. Zéro pour la soif — le robinet ne se referme jamais. Un pour le repas : ce qui était sur la table aujourd'hui y était pour aujourd'hui. Sans ce compteur, cuisiner lundi nourrirait toute la semaine, et la faim sortirait du jeu au deuxième jour.
+
+**Déléguer produit l'effet sur-le-champ.** Sam cuisine immédiatement ; le repas est sur la table à la seconde où on lui a demandé. La relance, elle, est une affaire de lendemain.
+
+> **Essayé et retiré le 2026-09-17 : faire attendre l'effet jusqu'à la relance.** C'était censé produire « Sam devait cuisiner, on n'a pas relancé, ce soir on n'a pas mangé ». Ça a produit autre chose : un monde incohérent. Une tâche a deux moitiés — elle **débloque des tâches filles**, et elle **change le monde**. Ne différer que la seconde faisait apparaître « débarrasser la table » alors que l'assiette était vide. **Les deux moitiés d'une même tâche tombent au même instant, ou le décor se met à mentir.**
+>
+> Le scénario de la délégation ratée reviendra par un Sam qui traîne, pas par un effet qu'on retient. Ce n'est pas la même chose : un délégataire lent est une conséquence lisible, un effet suspendu est un décalage invisible entre ce que le monde montre et ce qu'il contient.
+
+> **L'impasse existe, et elle est assumée (tranché le 2026-09-17).** Un besoin fermé au départ dépend d'une tâche pour s'ouvrir. Si son fil est écarté, il revient au bout de deux jours ; s'il tombe par terre, il n'a **aucune date de retour** et il faut aller le chercher dans le logement, que le jeu ne désigne jamais. Perdre le fil `repas` peut donc tuer. Aucune porte de secours n'a été posée : l'alerte du matin prévient trois jours à l'avance, et c'est tout ce que le joueur aura.
+
 ### La semaine n'est plus la fin
 
 Les sept jours du §11 sont un échafaudage de POC, pas le jeu. La partie est longue : on ne survit pas à une semaine, on garde quelqu'un en vie.
@@ -592,9 +612,9 @@ Les sept jours du §11 sont un échafaudage de POC, pas le jeu. La partie est lo
 2. **Contenu** — les fils, tâches et échéances qui font une partie longue.
 3. **Survival system.** En dernier : il demande de retoucher le contenu des fils, donc il vient après que ce contenu existe.
 
-**Cet ordre a été enfreint le 2026-09-17, et sur un seul point.** La soif est faite avant le contenu, parce qu'elle est le seul des trois besoins qui n'en demande aucun : un point d'eau, une réserve, une jauge, et rien d'autre. Les deux autres restent en attente pour la raison écrite ci-dessus.
+**Cet ordre a été enfreint le 2026-09-17, et le survival system est passé en premier.** D'abord la soif, parce qu'elle est le seul des trois besoins qui ne demande aucun contenu : un point d'eau, une réserve, une jauge. Puis la faim le même jour, une fois qu'il est apparu que la dépendance au contenu tenait en trois `.tres` et deux meubles — et qu'écrire le branchement tâche → besoin était de toute façon le seul moyen de savoir s'il tenait.
 
-- **La faim** a besoin de tâches « faire à manger », d'un repas qui a une destination et d'une délégation qui rate. C'est exactement la dépendance au contenu que cet ordre redoutait.
+- **La faim** avait besoin de tâches « faire à manger », d'un repas qui a une destination et d'une délégation qui rate. Les trois existent. Ce qui reste à faire est du réglage, pas de la conception : les chiffres du `.tres` n'ont jamais été joués.
 - **L'humeur** existe désormais, mais elle ne se nourrit que du corps. Qu'elle descende aussi sur les fils au sol et les échéances ratées demande une partie longue pour avoir quelque chose à observer — sur sept jours de test, elle n'a rien à constater.
 
 **Le dream system, lui, reste ouvert**, et ce n'est pas la soif qui le refermera : le verbe de la nuit n'est toujours pas tranché.
