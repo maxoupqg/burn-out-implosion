@@ -1,0 +1,23 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/jauge.gd" id="1_jauge"]
+
+[node name="Jauge" type="VBoxContainer"]
+theme_override_constants/separation = 3
+script = ExtResource("1_jauge")
+
+[node name="Titre" type="Label" parent="."]
+theme_override_colors/font_color = Color(1, 1, 1, 0.7)
+theme_override_font_sizes/font_size = 15
+text = "Humeur"
+horizontal_alignment = 2
+
+[node name="Fond" type="ColorRect" parent="."]
+custom_minimum_size = Vector2(216, 10)
+color = Color(1, 1, 1, 0.12)
+
+[node name="Remplissage" type="ColorRect" parent="Fond"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_vertical = 2
+color = Color(0.55, 0.78, 0.6, 1)

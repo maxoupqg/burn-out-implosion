@@ -283,16 +283,18 @@ func _hitstop() -> void:
 	_en_hitstop = false
 
 
-## La machine fait le travail : ce qui est autour tombe, sans lever la main.
-## La chose sans nom n'est pas concernée — un dispositif ne règle pas ce qu'on
-## a laissé tomber.
-func _sur_ancre_utilisee(centre: Vector2, rayon: float) -> void:
-	for monstre in _monstres.duplicate():
-		if not is_instance_valid(monstre) or monstre.invincible():
+## Le dispositif écarte ce qui arrivait et le retient un moment. Rien ne meurt
+## ici : la nuit se gagne à la main, l'ancré ne fait que rendre le prochain coup
+## jouable. La chose sans nom n'est pas concernée — un dispositif ne règle pas ce
+## qu'on a laissé tomber.
+##
+## Pas de `duplicate()` : plus personne ne quitte la liste pendant le balayage.
+func _sur_ancre_utilisee(centre: Vector2, rayon: float, duree: float) -> void:
+	for monstre in _monstres:
+		if not is_instance_valid(monstre):
 			continue
 		if monstre.global_position.distance_to(centre) <= rayon:
-			while is_instance_valid(monstre) and monstre.pv > 0:
-				monstre.encaisser(centre)
+			monstre.repousser(centre, duree)
 
 
 func _sur_abattu(monstre: Monstre) -> void:

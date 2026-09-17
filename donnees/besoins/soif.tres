@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="BesoinDef" format=3]
+
+[ext_resource type="Script" path="res://scripts/besoin_def.gd" id="1_besoin"]
+
+[resource]
+script = ExtResource("1_besoin")
+id = "soif"
+nom = "Soif"
+verbe = "boire"
+capacite = 12.0
+cout_base = 0.0
+humeur_par_unite = 1.0
+jours_avant_fatal = 3
+alerte = "Tu n'as pas bu."
+titre_fin = "Tu ne t'es pas relevé."
+sous_titre_fin = "Trois jours sans boire.\nIl y avait un robinet dans la cuisine."

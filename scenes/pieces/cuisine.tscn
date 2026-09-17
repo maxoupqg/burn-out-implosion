@@ -1,7 +1,9 @@
-[gd_scene load_steps=13 format=3]
+[gd_scene load_steps=15 format=3]
 
 [ext_resource type="Script" path="res://scripts/piece.gd" id="1_piece"]
 [ext_resource type="PackedScene" path="res://scenes/point_interaction.tscn" id="2_point"]
+[ext_resource type="PackedScene" path="res://scenes/point_besoin.tscn" id="12_besoin"]
+[ext_resource type="Resource" path="res://donnees/besoins/soif.tres" id="13_soif"]
 [ext_resource type="PackedScene" path="res://scenes/dispositif.tscn" id="3_dispositif"]
 [ext_resource type="PackedScene" path="res://scenes/porte.tscn" id="4_porte"]
 [ext_resource type="Resource" path="res://donnees/taches/cuisiner.tres" id="5_cuisiner"]
@@ -88,6 +90,11 @@ nom_meuble = "Bloc-notes"
 position = Vector2(-120, 60)
 tache_def = ExtResource("9_ranger")
 nom_meuble = "Cellier"
+
+[node name="Evier" parent="." instance=ExtResource("12_besoin")]
+position = Vector2(320, -110)
+besoin_def = ExtResource("13_soif")
+nom_meuble = "Évier"
 
 [node name="TableauDesMenus" parent="." instance=ExtResource("3_dispositif")]
 position = Vector2(-340, 230)

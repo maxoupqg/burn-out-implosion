@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/hud.gd" id="1_hud"]
+[ext_resource type="PackedScene" path="res://scenes/jauge.tscn" id="2_jauge"]
 
 [node name="HUD" type="CanvasLayer"]
 script = ExtResource("1_hud")
@@ -57,6 +58,27 @@ theme_override_font_sizes/font_size = 20
 text = "Temps  10.0 / 10"
 horizontal_alignment = 2
 
+[node name="Corps" type="VBoxContainer" parent="."]
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -240.0
+offset_top = -150.0
+offset_right = -24.0
+offset_bottom = -18.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_constants/separation = 14
+alignment = 2
+
+[node name="Besoins" type="VBoxContainer" parent="Corps"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Humeur" parent="Corps" instance=ExtResource("2_jauge")]
+layout_mode = 2
+
 [node name="Aide" type="Label" parent="."]
 anchor_top = 1.0
 anchor_bottom = 1.0
@@ -67,4 +89,4 @@ offset_bottom = -18.0
 grow_vertical = 0
 theme_override_colors/font_color = Color(1, 1, 1, 0.4)
 theme_override_font_sizes/font_size = 16
-text = "E : faire / ancrer / ramasser              DEBUG —  N : se coucher"
+text = "E : faire / ancrer / ramasser / boire              DEBUG —  N : se coucher"

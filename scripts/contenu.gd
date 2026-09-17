@@ -12,6 +12,7 @@ extends RefCounted
 
 const DOSSIER_FILS := "res://donnees/fils"
 const DOSSIER_TACHES := "res://donnees/taches"
+const DOSSIER_BESOINS := "res://donnees/besoins"
 
 ## Où un fil lâché peut tomber. Le plan complet est Cuisine ↔ Salon ↔ Salle de
 ## bain, plus la Chambre qui pend au salon — mais la chambre n'est pas là.
@@ -58,6 +59,24 @@ static func taches() -> Array[Tache]:
 			push_warning("Tâche « %s » sans fil : elle ne sera pas jouable." % def.id)
 			continue
 		liste.append(Tache.depuis(def))
+	return liste
+
+
+## Les besoins du corps (§18). Aucun tri utile : ils ne s'ordonnent ni par
+## arrivée ni par dépendance — un corps n'a pas de calendrier. L'ordre des
+## identifiants suffit à rendre l'affichage stable d'une partie à l'autre.
+static func besoins() -> Array[Besoin]:
+	var defs := _charger(DOSSIER_BESOINS)
+	defs.sort_custom(func(a: BesoinDef, b: BesoinDef) -> bool: return a.id < b.id)
+
+	var liste: Array[Besoin] = []
+	for def: BesoinDef in defs:
+		# Une capacité nulle ferait un besoin à sec dès la première seconde, donc
+		# une partie perdue d'avance sans que rien ne l'explique.
+		if def.capacite <= 0.0:
+			push_warning("Besoin « %s » sans capacité : ignoré." % def.id)
+			continue
+		liste.append(Besoin.depuis(def))
 	return liste
 
 

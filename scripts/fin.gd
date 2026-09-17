@@ -27,9 +27,18 @@ func _ready() -> void:
 	_recommencer.pressed.connect(_relancer)
 
 
+## `raison` est soit une des deux fins de la tête, soit l'identifiant du besoin
+## qui a eu raison du corps (§18) — auquel cas c'est le `.tres` du besoin qui
+## porte son propre texte de fin. Ajouter la faim ne demandera pas de revenir
+## ici.
 func _afficher(raison: String) -> void:
-	_titre.text = TITRES.get(raison, "Fin.")
-	_sous_titre.text = SOUS_TITRES.get(raison, "")
+	var besoin: Besoin = Partie.besoins.get(raison)
+	if besoin != null:
+		_titre.text = besoin.def.titre_fin
+		_sous_titre.text = besoin.def.sous_titre_fin
+	else:
+		_titre.text = TITRES.get(raison, "Fin.")
+		_sous_titre.text = SOUS_TITRES.get(raison, "")
 	_bilan.text = _ecrire_bilan()
 	visible = true
 	get_tree().paused = true

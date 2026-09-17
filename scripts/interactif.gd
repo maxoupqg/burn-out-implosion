@@ -21,6 +21,7 @@ var _ecoule: float = 0.0
 func _ready() -> void:
 	Partie.fils_change.connect(rafraichir)
 	Partie.taches_change.connect(rafraichir)
+	Partie.besoins_change.connect(rafraichir)
 	Partie.temps_change.connect(func(_restant: float) -> void: rafraichir())
 	Partie.jour_change.connect(func(_j: int) -> void: rafraichir())
 	_barre.visible = false

@@ -7,3 +7,7 @@ script = ExtResource("1_reglages")
 temps_jour = 15.0
 temps_dimanche = 20.0
 paliers_multiplicateur = PackedFloat32Array(1, 1, 1.2, 1.2, 1.4, 1.6, 1.8)
+humeur_max = 10.0
+temps_par_cran_humeur = 1.0
+humeur_remontee_par_jour = 2.0
+temps_plancher = 3.0

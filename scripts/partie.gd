@@ -29,7 +29,12 @@ signal fil_ferme(fil: Fil)
 signal fil_ecarte(fil: Fil)
 ## Et ça revient quand même.
 signal fil_revient(fil: Fil)
-## La run est terminée. `raison` vaut "effondrement" ou "semaine".
+## L'humeur a bougé (§18). Elle ne se remplit pas, elle se constate.
+signal humeur_change(humeur: float)
+## Une réserve du corps a bougé.
+signal besoins_change()
+## La run est terminée. `raison` vaut "effondrement", "semaine", ou
+## l'identifiant du besoin qui a eu raison du corps.
 signal partie_finie(raison: String)
 
 ## Tous les prix et tous les délais, éditables dans l'inspecteur (§2). Le reste
@@ -42,6 +47,11 @@ var jour: int = 1
 ## `reinitialiser()` leur donne leur vraie valeur dès `_ready`.
 var temps_restant: float = 0.0
 var slots: int = 0
+## L'humeur (§18). Ce n'est pas un besoin, c'est le résultat de la façon dont
+## on a joué. Elle ne s'achète nulle part — surtout pas au canapé : s'asseoir
+## doit rester la chose qui n'avance rien, sinon le renoncement calculé, qui
+## est le cœur validé du jeu, devient un calcul de rentabilité.
+var humeur: float = 0.0
 ## Nombre de fois où l'on a réussi à ne rien faire. C'est le score.
 var fois_assis: int = 0
 ## Journées où le canapé était libre et où l'on est reparti quand même.
@@ -57,6 +67,8 @@ var _assis_aujourdhui: bool = false
 var fils: Dictionary = {}
 ## id -> Tache
 var taches: Dictionary = {}
+## id -> Besoin. Le corps (§18) : il ne prend aucune case et n'a aucun fil.
+var besoins: Dictionary = {}
 ## Ce qu'on a délégué et qu'il faudra réclamer. Dans l'ordre où on l'a lâché :
 ## on relance ce qui traîne depuis le plus longtemps.
 var relances: Array[Relance] = []
@@ -77,8 +89,11 @@ func _ready() -> void:
 ## scène ne touche pas à un autoload, et les anciens Fil traînent leur tension.
 func reinitialiser() -> void:
 	jour = 1
-	temps_restant = temps_du_jour(jour)
 	slots = reglages.slots_base
+	# Avant `temps_du_jour` : le budget dépend de l'humeur, et une humeur restée
+	# à zéro d'une partie sur l'autre ferait démarrer lundi matin au plancher.
+	humeur = reglages.humeur_max
+	temps_restant = temps_du_jour(jour)
 	fois_assis = 0
 	jours_refuses = 0
 	finie = false
@@ -87,11 +102,14 @@ func reinitialiser() -> void:
 
 	fils.clear()
 	taches.clear()
+	besoins.clear()
 	relances.clear()
 	for fil in Contenu.fils():
 		fils[fil.id] = fil
 	for tache in Contenu.taches():
 		taches[tache.id] = tache
+	for besoin in Contenu.besoins():
+		besoins[besoin.id] = besoin
 
 
 # --- Lecture -----------------------------------------------------------------
@@ -100,8 +118,46 @@ func nom_jour(j: int) -> String:
 	return NOMS_JOURS[(j - 1) % NOMS_JOURS.size()]
 
 
+## Le budget d'une journée, humeur déduite (§18). Un cran perdu vaut une unité
+## de temps en moins — pas un multiplicateur : celui-là appartient aux cases, et
+## deux systèmes qui multiplient le même nombre deviennent illisibles.
 func temps_du_jour(j: int) -> float:
-	return reglages.temps_dimanche if j >= reglages.jours_semaine else reglages.temps_jour
+	var base: float = reglages.temps_dimanche if j >= reglages.jours_semaine else reglages.temps_jour
+	return maxf(reglages.temps_plancher, base - malus_humeur())
+
+
+## Ce que l'humeur coûte aujourd'hui. Zéro tant qu'on est au maximum.
+func malus_humeur() -> float:
+	return maxf(reglages.humeur_max - humeur, 0.0) * reglages.temps_par_cran_humeur
+
+
+## Le besoin qui vient d'avoir raison du corps, s'il y en a un.
+func besoin_fatal() -> Besoin:
+	for besoin: Besoin in besoins.values():
+		if besoin.sursis() == 0:
+			return besoin
+	return null
+
+
+## Ce que le corps a à dire, et qui doit se lire avant d'être subi. Vide tant
+## qu'aucune réserve n'est à sec — ce qui est le cas normal.
+##
+## Une mort qu'on découvre au moment où elle tombe est un piège, pas une règle.
+## Le seul reproche du playtest externe porte déjà sur ce que le jeu ne montre
+## pas : on n'y ajoute pas un compte à rebours invisible.
+func alerte_corps() -> String:
+	var lignes := PackedStringArray()
+	for besoin: Besoin in besoins.values():
+		if not besoin.a_sec():
+			continue
+		var reste := besoin.sursis()
+		if reste < 0:
+			lignes.append(besoin.def.alerte)
+		elif reste <= 1:
+			lignes.append("%s Demain il sera trop tard." % besoin.def.alerte)
+		else:
+			lignes.append("%s Encore %d jours." % [besoin.def.alerte, reste])
+	return "   ·   ".join(lignes)
 
 
 func fils_ouverts() -> Array[Fil]:
@@ -244,6 +300,57 @@ func depenser_temps(cout_base: float) -> bool:
 		return false
 	temps_restant -= cout
 	temps_change.emit(temps_restant)
+	_consommer_corps(cout)
+	return true
+
+
+## Le corps paie le temps réellement passé, multiplicateur compris : il ne sait
+## pas pourquoi la journée a été longue, il sait qu'elle l'a été. C'est ce qui
+## fait qu'une journée surchargée assèche plus vite qu'une journée calme, sans
+## qu'aucune règle n'ait à le dire.
+##
+## Tant qu'il reste de la réserve, il ne se passe rien du tout. La punition ne
+## commence qu'une fois à sec, et elle est vive : chaque unité vécue le gosier
+## sec coûte un cran d'humeur, donc une unité de temps demain.
+func _consommer_corps(consomme: float) -> void:
+	if consomme <= 0.0 or besoins.is_empty():
+		return
+
+	var perdu := 0.0
+	for besoin: Besoin in besoins.values():
+		perdu += besoin.consommer(consomme) * besoin.humeur_par_unite
+
+	besoins_change.emit()
+	if perdu <= 0.0:
+		return
+	humeur = maxf(humeur - perdu, 0.0)
+	humeur_change.emit(humeur)
+
+
+## Boire, manger : le corps ne se négocie pas, donc il n'y a qu'un verbe et il
+## n'a pas de variante. Rien à déléguer, rien à ancrer, rien à écarter.
+func peut_satisfaire(besoin: Besoin) -> bool:
+	if besoin == null or finie:
+		return false
+	# Plein, le meuble s'éteint. Sans ça il resterait allumé en permanence et
+	# n'apprendrait plus rien : c'est son extinction qui dit « ça va ».
+	if besoin.plein():
+		return false
+	return cout_reel(besoin.cout_base) <= temps_restant
+
+
+func satisfaire_besoin(besoin_id: String) -> bool:
+	var besoin: Besoin = besoins.get(besoin_id)
+	if not peut_satisfaire(besoin):
+		return false
+	# Payer d'abord, remplir ensuite : le geste lui-même se fait encore à sec,
+	# et il doit être compté comme tel. À coût nul ça ne change rien ; le jour
+	# où un besoin coûtera du temps, ça évitera une resquille d'une unité.
+	if not depenser_temps(besoin.cout_base):
+		return false
+
+	besoin.remplir()
+	besoins_change.emit()
 	return true
 
 
@@ -476,8 +583,12 @@ func signaler_canape_libre() -> void:
 func changer_de_piece() -> void:
 	if temps_restant <= 0.0:
 		return
+	var avant := temps_restant
 	temps_restant = maxf(temps_restant - cout_reel(reglages.cout_piece), 0.0)
 	temps_change.emit(temps_restant)
+	# Marcher assèche comme le reste, et c'est tout l'intérêt : le prix de boire
+	# est le détour, et le détour se paie deux fois — en temps, et en réserve.
+	_consommer_corps(avant - temps_restant)
 
 
 ## Ramasser un fil tombé (§6). Gratuit en temps — le prix a déjà été payé, en
@@ -609,6 +720,23 @@ func passer_la_soiree() -> void:
 			if fil.jours_au_sol >= 2:
 				fil.tension = Fil.TENSION_SEUIL
 
+	# 5. Le corps fait ses comptes (§18). C'est le coucher qui compte les jours,
+	#    pas la réserve : être à sec une heure avant d'aller dormir coûte un cran
+	#    d'humeur, pas une journée de sursis.
+	var journee_propre := fils_au_sol().is_empty()
+	for besoin: Besoin in besoins.values():
+		if besoin.a_sec():
+			besoin.jours_a_sec += 1
+			journee_propre = false
+
+	# L'humeur remonte parce que la journée s'est bien passée, jamais parce
+	# qu'on a acheté quelque chose. C'est ce qui l'empêche de devenir une jauge
+	# à optimiser — et ce qui protège le canapé, qui ne doit rien rapporter.
+	if journee_propre and humeur < reglages.humeur_max:
+		humeur = minf(humeur + reglages.humeur_remontee_par_jour, reglages.humeur_max)
+		humeur_change.emit(humeur)
+	besoins_change.emit()
+
 
 ## Ce que la nuit rend quand on ne l'a pas jouée. C'était la règle du §7 ; le
 ## §16 l'a dégradée au rang de *résumé d'une nuit qu'on n'a pas vue*. Elle sert
@@ -710,9 +838,14 @@ func se_lever(delta: int, paisible: bool = false) -> void:
 	fils_change.emit()
 	taches_change.emit()
 
-	# 8. Les deux façons dont ça s'arrête. L'effondrement passe devant : si on
-	#    s'écroule le dimanche soir, on s'est quand même écroulé.
-	if fils_au_sol().size() >= reglages.fils_au_sol_fatal:
+	# 8. Les façons dont ça s'arrête, dans l'ordre de ce qui prime. Le corps
+	#    passe devant tout : on ne finit pas sa semaine quand on ne se relève
+	#    pas, et la tête n'a plus d'importance à ce stade.
+	var mortel := besoin_fatal()
+	if mortel != null:
+		finie = true
+		partie_finie.emit(mortel.id)
+	elif fils_au_sol().size() >= reglages.fils_au_sol_fatal:
 		finie = true
 		partie_finie.emit("effondrement")
 	elif jour > reglages.jours_semaine:

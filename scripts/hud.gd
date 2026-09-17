@@ -39,16 +39,25 @@ var _sale: bool = true
 var _flashs := PackedStringArray()
 var _flash_restant: float = 0.0
 
+## Une jauge par besoin, posées sous l'humeur. Le nombre dépend du contenu de
+## `donnees/besoins/` : la scène porte la structure, le code ne pose que ce qui
+## en dépend.
+const JAUGE := preload("res://scenes/jauge.tscn")
+
 @onready var _slots: HBoxContainer = $Slots
 @onready var _mult: Label = $Multiplicateur
 @onready var _jour: Label = $Jour
 @onready var _temps: Label = $Temps
 @onready var _meteo: Label = $Meteo
+@onready var _humeur: Jauge = $Corps/Humeur
+@onready var _besoins: VBoxContainer = $Corps/Besoins
 
 
 func _ready() -> void:
 	Partie.fils_change.connect(_salir)
 	Partie.taches_change.connect(_salir)
+	Partie.humeur_change.connect(func(_h: float) -> void: _salir())
+	Partie.besoins_change.connect(_salir)
 	Partie.temps_change.connect(_maj_temps)
 	Partie.jour_change.connect(_maj_jour)
 
@@ -87,6 +96,7 @@ func _process(delta: float) -> void:
 		return
 	_sale = false
 	_maj_tete()
+	_maj_corps()
 	_maj_meteo()
 
 
@@ -128,6 +138,40 @@ func _maj_tete() -> void:
 	if m < _mult_precedent:
 		_souffler()
 	_mult_precedent = m
+
+
+## Le corps (§18), en bas à droite et loin du bandeau. La tête est en haut, le
+## corps est en bas : la règle qui les sépare doit s'enseigner par la position,
+## comme le §10 le fait déjà pour les fils et les tâches.
+##
+## L'humeur dit ce qu'elle coûte, en toutes lettres. Une jauge qui descend sans
+## dire à quoi elle sert n'est qu'une décoration inquiétante — et c'est
+## exactement le reproche que le playtest externe a fait au jeu.
+func _maj_corps() -> void:
+	var max_humeur: float = Partie.reglages.humeur_max
+	var titre := "Humeur  %d / %d" % [roundi(Partie.humeur), roundi(max_humeur)]
+	var malus := Partie.malus_humeur()
+	if malus > 0.0:
+		titre += "   −%.0f de temps" % malus
+	_humeur.afficher(titre, Partie.humeur / max_humeur if max_humeur > 0.0 else 0.0)
+
+	# Reconstruction complète : il y a un besoin dans le POC, et le jour où il
+	# y en aura trois, ça restera moins cher que de tenir une correspondance
+	# entre des jauges et un dictionnaire qui ne change jamais en cours de run.
+	for enfant in _besoins.get_children():
+		_besoins.remove_child(enfant)
+		enfant.queue_free()
+
+	for besoin: Besoin in Partie.besoins.values():
+		var jauge: Jauge = JAUGE.instantiate()
+		_besoins.add_child(jauge)
+		# Le décompte est sur la jauge, pas seulement dans la météo : c'est là
+		# qu'on regarde quand on se demande si on a le temps de passer boire.
+		var etiquette := besoin.nom
+		if besoin.a_sec():
+			var reste := besoin.sursis()
+			etiquette += "   à sec" if reste < 0 else "   plus que %d j" % reste
+		jauge.afficher(etiquette, besoin.part())
 
 
 func _souffler() -> void:
@@ -254,6 +298,14 @@ func _maj_meteo() -> void:
 		return
 
 	var annonces := PackedStringArray()
+
+	# Le corps passe devant tout le reste, et il ne s'annonce qu'une fois à sec.
+	# Ce qui tue dans trois jours ne se lit pas après la météo de la semaine.
+	var corps := Partie.alerte_corps()
+	if not corps.is_empty():
+		_meteo.text = corps
+		_meteo.modulate = COULEUR_CRAME
+		return
 
 	for fil: Fil in Partie.fils.values():
 		if fil.etat != Fil.Etat.ENATTENTE or not fil.annonce:

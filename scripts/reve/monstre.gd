@@ -59,6 +59,11 @@ const REGLAGES := {
 ## partir, assez sec pour qu'elle ne glisse pas jusqu'au bout de l'arène.
 const FREIN_RECUL := 1500.0
 
+## La poussée d'un ancré, plus forte que celle d'un coup et identique pour tous :
+## ce n'est pas la main du rêveur, c'est le dispositif. Le boss part comme la
+## corvée — un mur déjà bâti ne demande pas qui arrive dessus.
+const POUSSEE_ANCRE := 700.0
+
 ## Durée du blanchiment au coup.
 const DUREE_FLASH := 0.16
 
@@ -189,6 +194,30 @@ func encaisser(depuis: Vector2) -> bool:
 	if pv <= 0:
 		abattu.emit(self)
 		queue_free()
+	return true
+
+
+## Ce que fait un ancré : il écarte et il retient, il ne tue pas. Aucun PV ne
+## part, donc la nuit reste entièrement à jouer à la main — l'ancré achète du
+## temps et de la place, pas des morts.
+##
+## Renvoie vrai si ça a mordu. La chose sans nom n'est pas concernée : un
+## dispositif ne règle pas ce qu'on a laissé tomber, il faut aller le ramasser
+## dans la journée.
+func repousser(centre: Vector2, duree: float) -> bool:
+	if invincible():
+		return false
+
+	# On prolonge sans jamais raccourcir : un ancré déclenché sur une cible déjà
+	# sonnée par un coup ne doit pas écourter ce que le coup avait acheté.
+	_sonne = maxf(_sonne, duree)
+	var fuite := global_position - centre
+	# Pile au centre, il n'y a pas de direction : on prend la première venue
+	# plutôt que de laisser un `normalized()` nul le clouer sur place.
+	if fuite.is_zero_approx():
+		fuite = Vector2.RIGHT
+	velocity = fuite.normalized() * POUSSEE_ANCRE
+	queue_redraw()
 	return true
 
 

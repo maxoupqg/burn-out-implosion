@@ -75,6 +75,34 @@ extends Resource
 ## quand même toutes ses relances gratuitement.
 @export var cout_relance: float = 0.25
 
+@export_group("Corps")
+## Crans d'humeur. Elle démarre au maximum — le premier jour est l'état de
+## grâce qu'on va perdre, pas un handicap à rattraper.
+@export var humeur_max: float = 10.0
+## Temps retiré au budget du lendemain par cran d'humeur perdu.
+##
+## C'est la seule monnaie du corps, et elle ne se partage pas : la tension
+## coûte des cases, la nuit en rend, l'humeur coûte du temps. Lui faire coûter
+## des cases ferait doublon avec la seule chose que le rêve sait produire ;
+## lui faire grossir les fils ferait doublon avec `Fil.taille()`, qui le fait
+## déjà. Le temps est le seul emplacement libre, et il était réservé au corps
+## depuis le §17 (« pas mangé → moins de temps demain »).
+@export var temps_par_cran_humeur: float = 1.0
+## Crans rendus par une journée sans faute : aucune réserve à sec au coucher,
+## aucun fil par terre.
+##
+## À dimensionner sur la descente et pas à l'intuition. Une journée jouée
+## entièrement à sec coûte jusqu'à dix crans ; à 1 cran rendu par jour, une
+## seule étourderie condamnerait dix journées, jouées amputées, donc tenues de
+## plus en plus mal — un cliquet, et la spirale ne remonterait plus jamais.
+@export var humeur_remontee_par_jour: float = 2.0
+## Ce qui reste d'une journée quand l'humeur touche le plancher.
+##
+## Perdre et ne plus pouvoir jouer ne sont pas la même chose : même au fond,
+## la journée doit permettre d'aller boire et de se recoucher, sinon le jeu
+## s'arrête sans jamais le dire.
+@export var temps_plancher: float = 3.0
+
 @export_group("Délais")
 ## On ne court pas derrière quelqu'un dans l'heure. La relance tombe le
 ## lendemain — c'est ce décalage qui fait de la délégation un emprunt.

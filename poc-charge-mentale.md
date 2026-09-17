@@ -474,6 +474,8 @@ L'état des fils au coucher devient la géographie du rêve. Rien n'est tiré au
 | **Lâché, au sol** | une chose qui poursuit, et **que le joueur ne peut pas nommer** |
 | **Réglé / fermé** | absent — il n'a rien laissé derrière lui |
 
+**L'ancré écarte et retient, il ne tue pas.** La première version balayait ce qui l'entourait, et gagnait la nuit d'un seul appui : tous les monstres convergent sur le rêveur, donc n'importe quel effet centré là les attrape tous — ce n'était pas un rayon mal réglé, c'était structurel. Un dispositif ne fait pas le travail à ta place, il fait qu'il y a moins à faire d'un coup. Ce qu'il achète est du temps et de la place ; la nuit reste entièrement à jouer à la main. La chose sans nom y échappe : un dispositif ne règle pas ce qu'on a laissé tomber, il faut aller le ramasser dans la journée.
+
 La ligne qui compte est celle du fil lâché. Le §6 l'a effacé du bandeau : le joueur ne l'a **plus en mémoire**, au sens propre. Il le retrouve la nuit sans savoir ce que c'est. C'est le §6 rendu littéral, et ça ne coûte aucune mécanique nouvelle.
 
 **Corollaire de portée :** le procédural n'a presque rien à générer. La journée a déjà écrit le plan. Ce qui reste à produire, c'est de la variation d'habillage, pas de la conception de niveau.
@@ -511,7 +513,7 @@ Le POC a prouvé un système. Le jeu en aura trois, et les nommer n'est pas du r
 |---|---|---|
 | **Burn-out system** | Temps, cases, les six verbes, les fils et les tâches | Fait — §1 à §11 |
 | **Dream system** | La nuit jouée. Écrite par la journée, ne rend que des cases | Spécifié — §16 |
-| **Survival system** | Faim, soif, humeur | À concevoir — ci-dessous |
+| **Survival system** | Faim, soif, humeur | Soif et humeur faites ; la faim attend le contenu |
 
 ### La règle qui sépare charge et survie
 
@@ -533,20 +535,48 @@ Ce que le survival system a le droit de faire, c'est **mordre sur les deux resso
 
 > **Condition :** la soif reste quasi gratuite. Dès qu'elle coûte du vrai temps, c'est de la faim en plus petit, et elle ne prouve plus rien.
 
-**Humeur.** Elle ne se remplit pas, elle **se constate**. Ce n'est pas un besoin, c'est le résultat de la façon dont on a joué : des fils au sol, des échéances ratées, des jours sans s'asseoir la font descendre — et elle mord ensuite sur le temps et les cases.
+**Le paragraphe ci-dessus se contredisait, et voici par où.** Il affirme que le joueur « va sauter l'action la moins chère du jeu ». Il n'en a aucune raison : si boire est gratuit et que ne pas boire est puni, un joueur correct boit systématiquement, et la soif devient le clic obligatoire le plus ennuyeux du jeu. Pour qu'on la saute, il faut qu'elle coûte quelque chose — mais pas du temps, sinon c'est de la faim en plus petit.
+
+> **Le prix de boire n'est pas le verre, c'est le détour.** Le geste coûte zéro. Mais il faut être à la cuisine, donc il coûte un changement de pièce, facturé au tarif du jour par le §9. C'est gratuit quand tout va bien, et cher exactement le jour où l'on est dispersé. Aucun chiffre nouveau : le multiplicateur fait déjà tout le travail.
+
+**Comment elle se compte.** La réserve n'est pas une horloge, c'est **un capital de temps** : douze unités sur une journée qui en fait quinze. Elle descend en agissant, pas en dormant — une journée de course assèche, une journée molle non. Le joueur doit donc passer boire une fois dans la journée, sans que le jeu lui dise jamais quand.
+
+**Et à sec.** Rien ne se déclenche avant zéro. Une fois la réserve vide, chaque unité de temps consommée coûte un cran d'humeur, donc une unité de temps demain — et le corps a **trois jours** pour être réapprovisionné avant que la partie s'arrête. C'est la seconde fin du jeu, à côté de l'effondrement, et la seule qui ne vienne pas de la tête.
+
+**Humeur.** Elle ne se remplit pas, elle **se constate**. Ce n'est pas un besoin, c'est le résultat de la façon dont on a joué.
+
+> **Elle mord sur le temps, et sur rien d'autre.** Dix crans ; chaque cran perdu retire une unité au budget du lendemain.
+>
+> C'est le seul emplacement libre, et il faut qu'il le reste. Lui faire coûter des **cases** ferait doublon avec la nuit, qui ne sait produire que ça (§16) — le dream system n'aurait plus de monnaie à lui. Lui faire **grossir les fils** ferait doublon avec la tension : `Fil.taille()` passe déjà un fil négligé à deux cases (§4, §6), et deux causes pour un même effet rendent les deux illisibles. D'où la règle : **la tension coûte des cases, la nuit en rend, l'humeur coûte du temps.** Une monnaie par système, aucun recouvrement.
+
+**Ce qui la fait descendre, aujourd'hui : rien d'autre que le corps à sec.** Chaque unité de temps consommée la réserve vide coûte un cran. Le seuil ne se déclenche qu'à zéro, donc **un joueur qui passe boire ne perdra jamais un seul cran** — ce système ne mord que la négligence, et il mord fort quand elle arrive. Les fils au sol et les échéances ratées ne l'entament pas encore : c'est un branchement de plus, pas une conséquence du besoin.
+
+**Ce qui la fait remonter : une journée sans faute** — aucune réserve à sec au coucher, aucun fil par terre. Deux crans, réglables.
+
+> **La remontée se dimensionne sur la descente, pas à l'intuition.** Une journée entière jouée à sec coûte jusqu'à dix crans. À un cran rendu par jour, une seule étourderie condamnerait dix journées, jouées amputées, donc tenues de plus en plus mal : un cliquet, et la spirale ne remonte plus jamais. Le jeu est censé tourner dans les deux sens.
 
 > **Refusé : une jauge de divertissement.** S'asseoir *est* déjà le divertissement, et c'est le cœur validé du jeu (§16, condition d'entrée) : « j'avais la place, j'ai calculé, j'ai renoncé ». Une jauge qui réclame du repos transforme le renoncement en faute et punit mécaniquement le seul geste que deux playtests ont validé.
 >
 > **Le jour où l'interface dit « va te divertir », le verbe est mort.** L'humeur donne un prix visible au renoncement ; elle ne le condamne jamais, et elle n'interdit rien.
 
-### Ce qu'on n'affiche pas
+### Ce que le corps affiche
 
-Pas trois barres de plus. Deux zones, qui redisent la règle sans une ligne de texte :
+Deux zones, qui redisent la règle par leur position et sans une ligne de texte :
 
-- **La tête** — temps, cases. Ce qui se négocie.
-- **Le corps** — faim, soif. Ce qui ne se négocie pas.
+- **La tête**, en haut — temps, cases. Ce qui se négocie.
+- **Le corps**, en bas — les besoins, et l'humeur. Ce qui ne se négocie pas.
 
-L'**humeur ne va dans aucune des deux** : elle se lit sur le personnage. Une jauge en ferait une chose à optimiser ; un visage en fait une chose qu'on remarque.
+**Des jauges, et assumées.** Une version antérieure de cette section les refusait au motif que l'humeur « se lit sur le personnage » et qu'une jauge en ferait une chose à optimiser. Tranché le 2026-09-17 : ce sera une jauge. Trois raisons, dans l'ordre de leur poids.
+
+1. **Le corps peut tuer.** Trois jours sans boire arrête la partie. Une fin annoncée est une règle ; une fin découverte au moment où elle tombe est un piège. Le décompte s'affiche donc chaque matin, sur la jauge et dans le bandeau.
+2. **Le seul reproche du playtest externe est déjà « on ne voit pas ».** Le jeu tient, mais ce qu'il faut faire n'est pas lisible, faute de retours visuels. Ajouter un compteur mortel invisible irait droit dans le défaut connu.
+3. **L'humeur dit ce qu'elle coûte, en chiffres.** « Humeur 7/10 — −3 de temps ». Une jauge qui descend sans dire à quoi elle sert n'est qu'une décoration inquiétante.
+
+Le visage viendra **en plus**, pas à la place. Et la crainte d'origine tient toujours, mais elle ne portait pas sur la jauge : elle portait sur ce qui remplit l'humeur. C'est réglé autrement, ci-dessous.
+
+> **Refusé, et ça n'a pas bougé : s'asseoir ne remonte pas l'humeur.** S'asseoir est le divertissement, et c'est le cœur validé du jeu (§16, condition d'entrée) : « j'avais la place, j'ai calculé, j'ai renoncé ». Si le canapé rendait de l'humeur, et l'humeur du temps, **s'asseoir deviendrait rentable** — « ça n'avance rien, ça ne ferme rien » s'effondrerait, et avec lui le renoncement calculé que deux playtests ont produit.
+>
+> **Le jour où l'interface dit « va te divertir », le verbe est mort.** L'humeur ne s'achète nulle part : elle remonte parce que la journée s'est bien passée, jamais parce qu'on a payé pour.
 
 ### La semaine n'est plus la fin
 
@@ -561,5 +591,12 @@ Les sept jours du §11 sont un échafaudage de POC, pas le jeu. La partie est lo
 1. **Dream system.** Spécifié, débloqué, et c'est lui qui rend la partie longue tenable.
 2. **Contenu** — les fils, tâches et échéances qui font une partie longue.
 3. **Survival system.** En dernier : il demande de retoucher le contenu des fils, donc il vient après que ce contenu existe.
+
+**Cet ordre a été enfreint le 2026-09-17, et sur un seul point.** La soif est faite avant le contenu, parce qu'elle est le seul des trois besoins qui n'en demande aucun : un point d'eau, une réserve, une jauge, et rien d'autre. Les deux autres restent en attente pour la raison écrite ci-dessus.
+
+- **La faim** a besoin de tâches « faire à manger », d'un repas qui a une destination et d'une délégation qui rate. C'est exactement la dépendance au contenu que cet ordre redoutait.
+- **L'humeur** existe désormais, mais elle ne se nourrit que du corps. Qu'elle descende aussi sur les fils au sol et les échéances ratées demande une partie longue pour avoir quelque chose à observer — sur sept jours de test, elle n'a rien à constater.
+
+**Le dream system, lui, reste ouvert**, et ce n'est pas la soif qui le refermera : le verbe de la nuit n'est toujours pas tranché.
 
 **À trancher, et c'est le seul point ouvert du §16 :** *que fait le joueur dans le rêve ?* La section dit ce qu'on en rapporte, ce qu'on n'y met pas et comment la carte s'écrit à partir des fils — elle ne dit jamais le verbe. Marcher, fuir, chercher, ouvrir. Rien ne peut commencer avant ça.
